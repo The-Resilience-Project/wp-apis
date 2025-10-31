@@ -1,55 +1,77 @@
 <?php
 /**
- * Sentry Test Endpoint
+ * Sentry Test Endpoint with Diagnostics
  *
  * Tests Sentry logging in the API directory
  *
  * Usage: GET http://localhost:8880/api/test-sentry.php
  */
 
+// Force no caching
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
 header('Content-Type: application/json');
 
-// Load WordPress config to get Sentry DSN
-if (file_exists(__DIR__ . '/../wp-config.php')) {
-    // Load only the config constants we need, not the full WordPress
-    $wp_config_content = file_get_contents(__DIR__ . '/../wp-config.php');
-    if (preg_match("/define\(\s*'WP_SENTRY_PHP_DSN'\s*,\s*'([^']+)'/", $wp_config_content, $matches)) {
-        define('WP_SENTRY_PHP_DSN', $matches[1]);
-    }
+// Clear PHP OpCache for this file
+if (function_exists('opcache_invalidate')) {
+    opcache_invalidate(__FILE__, true);
 }
 
-// Load Sentry
-$sentryLoaded = false;
-$sentryInitialized = false;
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display, we'll capture in JSON
 
-if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
-    require_once __DIR__ . '/../../vendor/autoload.php';
-    $sentryLoaded = true;
-} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
-    $sentryLoaded = true;
+$diagnostics = [
+    'test_file_version' => '2.0',
+    'current_file' => __FILE__,
+    'current_dir' => __DIR__,
+    'init_file_path' => __DIR__ . '/init.php',
+    'init_file_exists' => file_exists(__DIR__ . '/init.php'),
+    'vendor_paths_checked' => [],
+];
+
+// Check vendor paths
+$vendorPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+    __DIR__ . '/../wp-content/vendor/autoload.php',
+];
+
+foreach ($vendorPaths as $path) {
+    $diagnostics['vendor_paths_checked'][$path] = file_exists($path);
 }
 
-// Initialize Sentry
-if ($sentryLoaded && defined('WP_SENTRY_PHP_DSN') && class_exists('\Sentry\init')) {
+// Try to load init.php
+if (file_exists(__DIR__ . '/init.php')) {
     try {
-        \Sentry\init([
-            'dsn' => WP_SENTRY_PHP_DSN,
-            'traces_sample_rate' => 1.0,
-            'environment' => 'development',
-        ]);
-        $sentryInitialized = true;
+        require_once __DIR__ . '/init.php';
+        $diagnostics['init_loaded'] = true;
     } catch (Exception $e) {
-        error_log('Sentry initialization failed: ' . $e->getMessage());
+        $diagnostics['init_loaded'] = false;
+        $diagnostics['init_error'] = $e->getMessage();
     }
+} else {
+    $diagnostics['init_loaded'] = false;
+    $diagnostics['init_error'] = 'init.php not found';
 }
+
+// Check what's available after init
+$diagnostics['after_init'] = [
+    'sentry_class_exists' => class_exists('\Sentry\init'),
+    'dsn_defined' => defined('WP_SENTRY_PHP_DSN'),
+    'dsn_value' => defined('WP_SENTRY_PHP_DSN') ? substr(WP_SENTRY_PHP_DSN, 0, 20) . '...' : 'not defined',
+];
+
+$sentryInitialized = class_exists('\Sentry\init') && defined('WP_SENTRY_PHP_DSN');
 
 $testResults = [
     'status' => 'success',
     'timestamp' => date('Y-m-d H:i:s'),
+    'diagnostics' => $diagnostics,
     'sentry' => [
-        'autoload_found' => $sentryLoaded,
         'dsn_configured' => defined('WP_SENTRY_PHP_DSN'),
+        'class_available' => class_exists('\Sentry\init'),
         'initialized' => $sentryInitialized,
     ],
     'tests' => [],
@@ -131,17 +153,40 @@ if ($sentryInitialized) {
         ];
     }
 
-    $testResults['message'] = 'All tests completed. Check your Sentry dashboard.';
+    // Test 5: Error with additional context
+    try {
+        \Sentry\withScope(function (\Sentry\State\Scope $scope) {
+            $scope->setTag('component', 'api');
+            $scope->setTag('test', 'true');
+            $scope->setUser(['id' => 'test-user', 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown']);
+            $scope->setContext('test_data', [
+                'timestamp' => time(),
+                'php_version' => phpversion(),
+            ]);
+            \Sentry\captureMessage('Test: Full context example', \Sentry\Severity::info());
+        });
+        $testResults['tests'][] = [
+            'name' => 'Full context example',
+            'status' => 'sent',
+            'message' => 'Message with tags, user, and context sent to Sentry',
+        ];
+    } catch (Exception $e) {
+        $testResults['tests'][] = [
+            'name' => 'Full context example',
+            'status' => 'failed',
+            'error' => $e->getMessage(),
+        ];
+    }
+
+    $testResults['message'] = 'All tests completed. Check your Sentry dashboard at https://sentry.io';
 } else {
     $testResults['status'] = 'error';
-    $testResults['message'] = 'Sentry not initialized. Check configuration.';
+    $testResults['message'] = 'Sentry not initialized. Check diagnostics for details.';
 
-    if (!$sentryLoaded) {
-        $testResults['error'] = 'Composer autoload not found';
-    } elseif (!defined('WP_SENTRY_PHP_DSN')) {
+    if (!defined('WP_SENTRY_PHP_DSN')) {
         $testResults['error'] = 'WP_SENTRY_PHP_DSN not defined in wp-config.php';
     } elseif (!class_exists('\Sentry\init')) {
-        $testResults['error'] = 'Sentry class not found after autoload';
+        $testResults['error'] = 'Sentry SDK not loaded. Check vendor/autoload.php exists at public_html/vendor/';
     }
 }
 
