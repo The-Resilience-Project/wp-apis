@@ -1,0 +1,73 @@
+<?php
+require dirname(__FILE__)."/utils.php";
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: PUT, GET, POST");
+header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
+
+$method = get_method();
+$data = get_request_data();
+
+// POST request
+// Store some data or something
+if ($method === 'POST') {
+	$request_header = array("Account-Number: 10168525", "Content-Type: application/json");
+    $username = "8ec1498b-1c04-485a-b642-e7d9a1d4df26";
+    $password = "yX4kEYsbJoikUVqE6SBR";
+	// "Authorisation: Basic OGVjMTQ5OGItMWMwNC00ODVhLWI2NDItZTdkOWExZDRkZjI2OnlYNGtFWXNiSm9pa1VWcUU2U0JS"
+	$consignment = $data["consignment"];
+	
+	if(count($consignment) == 0){
+    	send_response([
+    		'price' => 0
+    	]);
+	}
+	
+
+    $request_body = array(
+        'shipments' => array(
+            "from" => array(
+                "suburb" => "SEAFORD",
+                "state" => "VIC",
+                "postcode" => "3198"
+            ),
+            "to" => array(
+                "suburb" => $data["destination_suburb"],
+                "state" => $data["destination_state"],
+                "postcode" => $data["destination_postcode"]
+            ),
+            "items" => $consignment,
+        )
+    );
+
+
+	$request_handle = curl_init("https://digitalapi.auspost.com.au/shipping/v1/prices/shipments");
+	curl_setopt_array( $request_handle, array(
+		CURLOPT_CUSTOMREQUEST => "POST",
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_POSTFIELDS => json_encode($request_body),
+		CURLOPT_HEADER => false,
+		CURLOPT_HTTPHEADER => $request_header,
+		CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+		CURLOPT_USERPWD => $username .":".$password,
+	));
+	$response = curl_exec( $request_handle );
+    $json_response = json_decode($response, true);
+    curl_close($request_handle);
+    if(!isset($json_response["shipments"])){
+        error_log(print_r($request_body,1));
+        error_log(print_r($json_response,1));
+    	send_response([
+    		'error' => true
+    	]);
+    }
+    
+    $price = $json_response["shipments"][0]["shipment_summary"]["total_cost_ex_gst"];
+	
+
+	// Then, respond with a success
+	send_response([
+		'price' => $price
+	]);
+	exit;
+
+}
