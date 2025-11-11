@@ -26,45 +26,23 @@ error_reporting(0);
 //error_reporting(E_ALL); // STRICT DEVELOPMENT
 //echo "<pre>";
 
+// Log this webhook call
+if (function_exists('log_call')) {
+    log_call(__FILE__, ['webhook' => 'Order']);
+}
+
 $vtod = init_vtod();
 // global $dbh;
-
-// Start transaction for performance tracking
-$transaction = null;
-if (function_exists('\Sentry\startTransaction')) {
-    $transactionContext = new \Sentry\Tracing\TransactionContext();
-    $transactionContext->setName('Order Webhook');
-    $transactionContext->setOp('webhook.order');
-    $transaction = \Sentry\startTransaction($transactionContext);
-    \Sentry\SentrySdk::getCurrentHub()->setSpan($transaction);
-}
 
 putlogwebhook("========== START ==========");
 
 $postData = json_decode(file_get_contents("php://input"), true);
-$schoolName = '';
 
-// Log webhook received with metrics
-if (function_exists('\Sentry\captureMessage')) {
-    \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($postData) {
-        $scope->setTag('webhook', 'order');
-        $scope->setTag('order_status', $postData['status'] ?? 'unknown');
-        $scope->setTag('order_id', $postData['id'] ?? 'unknown');
-        $scope->setContext('order_info', [
-            'id' => $postData['id'] ?? null,
-            'status' => $postData['status'] ?? null,
-            'total' => $postData['total'] ?? null,
-            'currency' => $postData['currency'] ?? null,
-            'date_created' => $postData['date_created'] ?? null,
-        ]);
-        $scope->setContext('request', [
-            'method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-        ]);
-        \Sentry\captureMessage('Order webhook received', \Sentry\Severity::info());
-    });
+// Log webhook data
+if (function_exists('log_webhook')) {
+    log_webhook('Order.php', ['order_id' => $postData['id'] ?? 'unknown', 'status' => $postData['status'] ?? 'unknown']);
 }
+$schoolName = '';
 
 putlogwebhook("New order to process, process data:");
 putlogwebhook($postData);
@@ -181,19 +159,6 @@ foreach ($postData['line_items'] as $lineItem) {
 
 if (!empty($schoolName) && $postData['status'] == 'processing') {
     putlogwebhook("Order have processing status, doing process");
-
-    // Log processing started
-    if (function_exists('\Sentry\addBreadcrumb')) {
-        \Sentry\addBreadcrumb(
-            new \Sentry\Breadcrumb(
-                \Sentry\Breadcrumb::LEVEL_INFO,
-                \Sentry\Breadcrumb::TYPE_DEFAULT,
-                'order.processing',
-                'Started processing order',
-                ['school_name' => $schoolName, 'order_id' => $woocommerce_id]
-            )
-        );
-    }
     // check by buildname first 
     // $sqlGet = "SELECT * FROM boru_woocommerce_order WHERE woocommerce_id = ? and buildname = ?";
     // $dataCheck = $dbh->getSingle($sqlGet, array($woocommerce_id,$buildname));
@@ -218,16 +183,6 @@ if (!empty($schoolName) && $postData['status'] == 'processing') {
 
         if (count($resultOrg) == 0) {
             putlogwebhook("No account found in crm with name, checking other account-> " . $schoolName);
-
-            // Log account not found
-            if (function_exists('\Sentry\captureMessage')) {
-                \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($schoolName, $woocommerce_id) {
-                    $scope->setTag('event', 'account_not_found');
-                    $scope->setTag('school_name', $schoolName);
-                    $scope->setContext('school_lookup', ['school_name' => $schoolName, 'order_id' => $woocommerce_id]);
-                    \Sentry\captureMessage('Account not found, using fallback', \Sentry\Severity::warning());
-                });
-            }
 
             $queryOrg1 = "SELECT * FROM Accounts WHERE accountname='School Name Other'; ";
             $resultOrg = $vtod->query($queryOrg1);
@@ -255,36 +210,9 @@ if (!empty($schoolName) && $postData['status'] == 'processing') {
                     putlogwebhook("Other account created with id -> " . $dataCOrg['id']);
 
                     $accountId = $dataCOrg['id'];
-
-                    // Log account creation
-                    if (function_exists('\Sentry\captureMessage')) {
-                        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($accountId, $schoolName, $woocommerce_id) {
-                            $scope->setTag('event', 'account_created');
-                            $scope->setTag('account_type', 'fallback');
-                            $scope->setContext('account_creation', [
-                                'account_id' => $accountId,
-                                'intended_school_name' => $schoolName,
-                                'order_id' => $woocommerce_id,
-                            ]);
-                            \Sentry\captureMessage('Fallback account created', \Sentry\Severity::info());
-                        });
-                    }
                 }
             } catch (Exception $e) {
                 putlogwebhook('Error while creating new Other school Account in CRM. error = ' . $e->getMessage());
-
-                // Log account creation error
-                if (function_exists('\Sentry\captureException')) {
-                    \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($schoolName, $woocommerce_id) {
-                        $scope->setTag('event', 'account_creation_failed');
-                        $scope->setTag('error_type', 'account_creation');
-                        $scope->setContext('account_creation', [
-                            'school_name' => $schoolName,
-                            'order_id' => $woocommerce_id,
-                        ]);
-                    });
-                    \Sentry\captureException($e);
-                }
             }
             /**/
         }
@@ -313,37 +241,8 @@ if (!empty($schoolName) && $postData['status'] == 'processing') {
 
                     putlogwebhook("Success, account updated.");
 
-                    // Log successful account update
-                    if (function_exists('\Sentry\captureMessage')) {
-                        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($accountId, $schoolName, $woocommerce_id, $qty_early_year) {
-                            $scope->setTag('event', 'account_updated');
-                            $scope->setTag('success', 'true');
-                            $scope->setContext('account_update', [
-                                'account_id' => $accountId,
-                                'school_name' => $schoolName,
-                                'order_id' => $woocommerce_id,
-                                'qty_early_year' => $qty_early_year,
-                            ]);
-                            \Sentry\captureMessage('Account updated successfully', \Sentry\Severity::info());
-                        });
-                    }
-
                 } catch (Exception $e) {
                     putlogwebhook('Error while updating Account in CRM. error = ' . $e->getMessage());
-
-                    // Log account update error
-                    if (function_exists('\Sentry\captureException')) {
-                        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($accountId, $schoolName, $woocommerce_id) {
-                            $scope->setTag('event', 'account_update_failed');
-                            $scope->setTag('error_type', 'account_update');
-                            $scope->setContext('account_update', [
-                                'account_id' => $accountId,
-                                'school_name' => $schoolName,
-                                'order_id' => $woocommerce_id,
-                            ]);
-                        });
-                        \Sentry\captureException($e);
-                    }
                 }
                 try{
                     putlogwebhook("Attempting to update deal.");
@@ -400,36 +299,8 @@ if (!empty($schoolName) && $postData['status'] == 'processing') {
 
                     $resUpdate = $vtod->revise($updatedDeal);
 
-                    // Log successful deal update
-                    if (function_exists('\Sentry\captureMessage')) {
-                        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($dealId, $woocommerce_id, $number_of_groups, $qty_early_year) {
-                            $scope->setTag('event', 'deal_updated');
-                            $scope->setTag('success', 'true');
-                            $scope->setContext('deal_update', [
-                                'deal_id' => $dealId,
-                                'order_id' => $woocommerce_id,
-                                'number_of_groups' => $number_of_groups,
-                                'participants' => $qty_early_year,
-                            ]);
-                            \Sentry\captureMessage('Deal updated successfully', \Sentry\Severity::info());
-                        });
-                    }
-
                 } catch (Exception $e) {
                     putlogwebhook('Error while updating deal in CRM. error = ' . $e->getMessage());
-
-                    // Log deal update error
-                    if (function_exists('\Sentry\captureException')) {
-                        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($accountId, $woocommerce_id) {
-                            $scope->setTag('event', 'deal_update_failed');
-                            $scope->setTag('error_type', 'deal_update');
-                            $scope->setContext('deal_update', [
-                                'account_id' => $accountId,
-                                'order_id' => $woocommerce_id,
-                            ]);
-                        });
-                        \Sentry\captureException($e);
-                    }
                 }
 
             } else {
@@ -441,53 +312,14 @@ if (!empty($schoolName) && $postData['status'] == 'processing') {
         }
     } catch (Exception $e) {
         putlogwebhook('Error while fetching account from CRM. error = ' . $e->getMessage());
-
-        // Log critical error
-        if (function_exists('\Sentry\captureException')) {
-            \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($schoolName, $woocommerce_id) {
-                $scope->setTag('event', 'critical_error');
-                $scope->setTag('error_type', 'account_fetch');
-                $scope->setContext('error_context', [
-                    'school_name' => $schoolName,
-                    'order_id' => $woocommerce_id,
-                ]);
-            });
-            \Sentry\captureException($e);
-        }
     }
 } else {
     if (empty($schoolName)) {
         putlogwebhook('No school name in order');
-
-        // Log missing school name
-        if (function_exists('\Sentry\captureMessage')) {
-            \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($postData) {
-                $scope->setTag('event', 'missing_school_name');
-                $scope->setTag('order_id', $postData['id'] ?? 'unknown');
-                $scope->setLevel(\Sentry\Severity::warning());
-                \Sentry\captureMessage('Order received without school name', \Sentry\Severity::warning());
-            });
-        }
     }else{
         putlogwebhook('Order status is not processing');
-
-        // Log skipped order (non-processing status)
-        if (function_exists('\Sentry\captureMessage')) {
-            \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($postData) {
-                $scope->setTag('event', 'order_skipped');
-                $scope->setTag('order_status', $postData['status'] ?? 'unknown');
-                $scope->setTag('order_id', $postData['id'] ?? 'unknown');
-                \Sentry\captureMessage('Order skipped - status not processing', \Sentry\Severity::info());
-            });
-        }
     }
 }
-
-// Finish transaction
-if ($transaction) {
-    $transaction->finish();
-}
-
 putlogwebhook("========== END==========");
 
 
