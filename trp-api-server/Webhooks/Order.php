@@ -12,13 +12,25 @@
 // die("Remove this when push to prod.");
 //Remove above die when need to run webhook
 
+chdir(dirname(__FILE__));
+require_once "../init.php";
+
+// Log API call to Sentry
+if (function_exists('\Sentry\captureMessage')) {
+    \Sentry\withScope(function (\Sentry\State\Scope $scope) {
+        $scope->setTag('endpoint', 'woocommerce_order_webhook');
+        $scope->setTag('method', $_SERVER['REQUEST_METHOD'] ?? 'unknown');
+        $scope->setContext('request', [
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        ]);
+        \Sentry\captureMessage('API: WooCommerce Order webhook called', \Sentry\Severity::info());
+    });
+}
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: PUT, GET, POST");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
-
-chdir(dirname(__FILE__));
-require_once "../init.php";
 
 //========Debugging=============
 error_reporting(0);

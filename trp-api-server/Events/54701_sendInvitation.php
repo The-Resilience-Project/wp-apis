@@ -4,12 +4,25 @@
  * Team: IN
  * Date: 14/10/22 1:54 PM
  */
+chdir(dirname(__FILE__));
+require "../init.php";
+
+// Log API call to Sentry
+if (function_exists('\Sentry\captureMessage')) {
+    \Sentry\withScope(function (\Sentry\State\Scope $scope) {
+        $scope->setTag('endpoint', 'sendInvitation');
+        $scope->setTag('method', $_SERVER['REQUEST_METHOD'] ?? 'unknown');
+        $scope->setContext('request', [
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        ]);
+        \Sentry\captureMessage('API: sendInvitation endpoint called', \Sentry\Severity::info());
+    });
+}
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: PUT, GET, POST");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
-
-chdir(dirname(__FILE__));
-require "../init.php";
 
 $result = array('success' => false);
 if($_SERVER['REQUEST_METHOD'] != "POST") {
