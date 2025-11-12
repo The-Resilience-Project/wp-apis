@@ -368,15 +368,11 @@ class ShipStationOrder {
         if(!$debug)
             return;
 
-        $content = date("Y-m-d H:i:s")."\t";
         if(is_array($var) || is_object($var)) {
-            $content.=print_r($var,true);
+            log_debug('Create shipment 2025', ['data' => $var]);
         } else {
-            $content.=$var;
+            log_debug('Create shipment 2025: ' . $var);
         }
-        $content.="\n";
-
-        file_put_contents(dirname(__FILE__)."/createShipment2025.log",$content,FILE_APPEND);
     }
 }
 $ship_station_order = new ShipStationOrder($_REQUEST['recordid']);

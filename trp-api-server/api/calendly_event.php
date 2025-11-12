@@ -115,17 +115,9 @@ exit;
 
 function log_data($var)
 {
-    $content = date("Y-m-d H:i:s") . "\t";
     if (is_array($var) || is_object($var)) {
-        $content .= print_r($var, true);
+        log_debug('Calendly event', ['data' => $var]);
     } else {
-        $content .= $var;
+        log_debug('Calendly event: ' . $var);
     }
-    $content .= "\n";
-//     echo $content;
-//     echo "<br>";
-    if (!file_exists(dirname(__FILE__) . "/calendlyLog.log")) {
-        @touch(dirname(__FILE__) . "/calendlyLog.log", 0777, true);
-    }
-    file_put_contents(dirname(__FILE__) . "/calendlyLog.log", $content, FILE_APPEND);
 }
