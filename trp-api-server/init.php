@@ -42,6 +42,7 @@ if (defined('WP_SENTRY_PHP_DSN') && function_exists('\Sentry\init')) {
             'dsn' => WP_SENTRY_PHP_DSN,
             'traces_sample_rate' => 1.0,
             'environment' => 'production',
+            'enable_logs' => true,
         ]);
     } catch (Exception $e) {
         error_log('Sentry initialization failed: ' . $e->getMessage());
