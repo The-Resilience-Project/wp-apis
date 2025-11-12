@@ -98,7 +98,11 @@ class VTController{
     	$response = curl_exec( $request_handle );
     	if($response === false)
         {
-            error_log('Curl error: ' . curl_error($response));
+            $curl_error = curl_error($request_handle);
+            log_error('cURL request failed', [
+                'error' => $curl_error,
+                'endpoint' => $endpoint
+            ]);
         }
         $json_response = json_decode($response);
         curl_close($request_handle);

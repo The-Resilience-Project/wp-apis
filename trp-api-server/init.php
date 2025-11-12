@@ -19,6 +19,7 @@ foreach ($autoloadPaths as $autoloadPath) {
                 error_log('Sentry autoload loaded from: ' . $autoloadPath);
             }
         } catch (Exception $e) {
+            // Can't use log_exception here as functions aren't loaded yet
             error_log('Sentry autoload error from ' . $autoloadPath . ': ' . $e->getMessage());
         }
         break;
@@ -45,6 +46,7 @@ if (defined('WP_SENTRY_PHP_DSN') && function_exists('\Sentry\init')) {
             'enable_logs' => true,
         ]);
     } catch (Exception $e) {
+        // Can't use log_exception here as it would cause recursion
         error_log('Sentry initialization failed: ' . $e->getMessage());
     }
 }
@@ -55,7 +57,7 @@ require_once "lib/class_dhpdo.php";
 try{
     $dbh = new dhpdo($local_config);
 }catch (Exception $e){
-    error_log($e->getMessage());
+    log_exception($e, ['component' => 'database_init']);
     return 'Error Message: ' .$e->getMessage();
 }
 
@@ -67,7 +69,7 @@ require_once "functions.php";
 try{
     $vtod = init_vtod();
 }catch (Exception $e){
-    error_log($e->getMessage());
+    log_exception($e, ['component' => 'vtiger_init']);
     return  'Error Message: ' .$e->getMessage();
 }
 
@@ -78,8 +80,102 @@ function init_vtod() {
         $vtod = new dhvt($vtod_config["url"]."webservice.php",$vtod_config["username"],$vtod_config["accesskey"]);
         return $vtod;
     }catch (Exception $e){
-        error_log($e->getMessage());
+        log_exception($e, ['component' => 'vtiger_connection']);
         return 'Error Message: ' .$e->getMessage();
     }
 
+}
+
+/**
+ * Enhanced logging functions that log to both error_log AND Sentry
+ */
+
+/**
+ * Log debug information
+ * @param string $message The message to log
+ * @param array $context Additional context data
+ */
+function log_debug($message, $context = []) {
+    error_log('[DEBUG] ' . $message);
+
+    if (function_exists('\Sentry\captureMessage')) {
+        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($message, $context) {
+            if (!empty($context)) {
+                $scope->setContext('debug_data', $context);
+            }
+            \Sentry\captureMessage($message, \Sentry\Severity::debug());
+        });
+    }
+}
+
+/**
+ * Log info message
+ * @param string $message The message to log
+ * @param array $context Additional context data
+ */
+function log_info($message, $context = []) {
+    error_log('[INFO] ' . $message);
+
+    if (function_exists('\Sentry\captureMessage')) {
+        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($message, $context) {
+            if (!empty($context)) {
+                $scope->setContext('info_data', $context);
+            }
+            \Sentry\captureMessage($message, \Sentry\Severity::info());
+        });
+    }
+}
+
+/**
+ * Log warning message
+ * @param string $message The message to log
+ * @param array $context Additional context data
+ */
+function log_warning($message, $context = []) {
+    error_log('[WARNING] ' . $message);
+
+    if (function_exists('\Sentry\captureMessage')) {
+        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($message, $context) {
+            if (!empty($context)) {
+                $scope->setContext('warning_data', $context);
+            }
+            \Sentry\captureMessage($message, \Sentry\Severity::warning());
+        });
+    }
+}
+
+/**
+ * Log error message
+ * @param string $message The message to log
+ * @param array $context Additional context data
+ */
+function log_error($message, $context = []) {
+    error_log('[ERROR] ' . $message);
+
+    if (function_exists('\Sentry\captureMessage')) {
+        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($message, $context) {
+            if (!empty($context)) {
+                $scope->setContext('error_data', $context);
+            }
+            \Sentry\captureMessage($message, \Sentry\Severity::error());
+        });
+    }
+}
+
+/**
+ * Log exception to both error_log and Sentry
+ * @param Exception $exception The exception to log
+ * @param array $context Additional context data
+ */
+function log_exception($exception, $context = []) {
+    error_log('[EXCEPTION] ' . $exception->getMessage() . ' in ' . $exception->getFile() . ':' . $exception->getLine());
+
+    if (function_exists('\Sentry\captureException')) {
+        \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($exception, $context) {
+            if (!empty($context)) {
+                $scope->setContext('exception_data', $context);
+            }
+            \Sentry\captureException($exception);
+        });
+    }
 }

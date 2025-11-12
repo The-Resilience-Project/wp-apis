@@ -25,9 +25,7 @@ if (function_exists('\Sentry\captureMessage')) {
 }
 
 if ($method === 'POST') {
-    error_log("************** Curric Ordering Data 2026 ********************");
-    error_log(print_r($data, true));
-    error_log("********************************************************");
+    log_debug("Curriculum Ordering Data 2026 received", ['data' => $data]);
     $data_controller = new SchoolVTController($data);
     
     $success = $data_controller->order_resources_26();
