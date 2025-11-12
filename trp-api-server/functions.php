@@ -8,21 +8,6 @@ function cleanPhoneNum($phone) {
 }
 
 /* Debugging functions */
-function putlog($var) {
-	global $debug;
-	if(!$debug)
-		return;
-	
-	$content = date("Y-m-d H:i:s")."\t";
-	if(is_array($var) || is_object($var)) {
-		$content.=print_r($var,true);
-	} else {
-		$content.=$var;
-	}
-	$content.="\n";
-	
-	file_put_contents(dirname(__FILE__)."/debug.log",$content,FILE_APPEND);
-}
 function get_last_update($date){
 	if (empty($date)) return "N/A";
 	$now = strtotime(date("Y-m-d H:i:s"));

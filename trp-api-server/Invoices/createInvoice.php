@@ -29,11 +29,11 @@ $vtconfig_url = $vtod_config["url"];
 // $serviceNo = 'SER111';
 // $sql  = "SELECT * FROM `boru_services` WHERE `service_no` = ? LIMIT 1";
 // $dataCheck = $dbh->getSingle($sql, array($serviceNo));
-// print_r( $dataCheck ); 
+// print_r( $dataCheck );
 // echo 3333;
 // $dataRecord = (array) json_decode($dataCheck['data']);
 // print_r( $dataRecord );exit;
-putlog($_REQUEST);
+log_debug('Invoice creation request received', ['request' => $_REQUEST]);
 
 define('SECTION_1', 'Display on Invoice');
 define('SLEEP_SECTION', 0);
@@ -237,17 +237,13 @@ $new_service_items = array(
     array('serviceNo' => 'SER111' ,  'qty' => 1, 'name' => 'Shipping and handling curriculum'),
     array('serviceNo' => 'SER12', 'name' => 'Engage' ,  'qty' => $total_student ),
     //$total_student +  $total_teacher
-); 
-$new_product_items = array( 
+);
+$new_product_items = array(
     array('serviceNo' => 'PRO44', 'name' => 'Hard Copy Teacher Resources' ,  'qty' => $total_teacher ),
-    
-//     array('serviceNo' ,  'qty' ),
-    
-); 
 
-// putlog('comment');
-// putlog($commentInspire);
-// putlog($commentEngage);
+//     array('serviceNo' ,  'qty' ),
+
+);
 $grandTotal = 0;
 $lineItem = array();
 $quoteId = $_REQUEST['59'];
@@ -277,11 +273,8 @@ if($quoteId) {
                 $lineItems[$key]['quantity'] = $total_student; 
             }
         }
-        
-//         putlog('data $lineItems');
-//         putlog($lineItems);  
-        
-        // add new line items 
+
+        // add new line items
         $grandTotal = $quoteRecord['hdnGrandTotal'] ;
         $lineItem = $lineItems;        
         
@@ -292,7 +285,6 @@ else { //no quote
     
 }
 
-    //         putlog(' res_service ');
     foreach ($new_service_items as $k => $service) {
         $qtyS = floatval($service['qty']);
         if($qtyS == 0){
@@ -306,8 +298,7 @@ else { //no quote
         
         $query_service  = sprintf("SELECT * FROM Services WHERE service_no='%s' LIMIT 1; ",$serviceNo);
         $dataRecord = $vtod->query($query_service)[0];
-        
-        //             putlog($res_service);
+
         // $dataRecord= array();
         // if (!empty($dataCheck['serviceid'])){
         //     $dataRecord = (array) json_decode($dataCheck['data']);
@@ -343,7 +334,7 @@ else { //no quote
             }
         }
     }
-    //          putlog(' prod ');
+
     foreach ($new_product_items as $k => $service) {
         $qtyS = floatval($service['qty']);
         if($qtyS == 0){
@@ -361,8 +352,7 @@ else { //no quote
         
         $query_service  = sprintf("SELECT * FROM Products WHERE product_no='%s' LIMIT 1; ",$serviceNo);
         $dataRecord = $vtod->query($query_service)[0];
-        
-                    // putlog($res_service);
+
         if(isset($dataRecord['id'])) {
             $serviceid = $dataRecord['id'];
             $price = (float)$dataRecord['unit_price'];
@@ -388,10 +378,10 @@ else { //no quote
             }
         }
     }
-    
+
+
     sleep(SLEEP_SECTION);
-    putlog("serviceArr2");
-    putlog($serviceArr2);
+    log_debug('Processing student journals section', ['service_array' => $serviceArr2]);
     // for section 2
     foreach ($serviceArr2 as $k => $service) {
         $qtyS = floatval($service['qty']);
@@ -486,10 +476,9 @@ if($quoteId) {
     $quoteRecord['LineItems'] = $lineItem;
     $quoteRecord['hdnSubTotal'] = (float)$grandTotal;
     $quoteRecord['hdnGrandTotal'] = (float)$grandTotal;
-    
-            putlog('data quote');
-    //         putlog($quoteRecord);
-    
+
+    log_debug('Creating invoice from quote', ['quote_id' => $quoteRecord['id'], 'grand_total' => $grandTotal]);
+
     $quoteRecord['quote_id'] = $quoteRecord['id'];
     unset($quoteRecord['id']);
     unset($quoteRecord['source']);
@@ -544,10 +533,8 @@ if($quoteId) {
         //             $invoiceArr["shipping_&_handling"] = $shipping_handling_charge;
         
         $invoiceArr['cf_invoice_selectedyearlevels']     = implode(" |##| ", $listselectedyearlevels);
-        //         putlog('data Invoice');
-        //         putlog($invoiceArr); exit;
-        
-        
+
+
         $objectInvoiceJson = json_encode($invoiceArr);
         $invoiceParams = array(
             "sessionName" => $vtod->sessionId,
@@ -557,15 +544,18 @@ if($quoteId) {
         );
         $dataInvoice = $vtod->curlPost($vtconfig_url . "webservice.php", $invoiceParams);
         $resultInvoice = json_decode($dataInvoice,1);
-        putlog('resultInvoice');
-        putlog('invoice assigned to '.$invoiceArr['assigned_user_id']);
-        putlog('invoice contact '.$invoiceArr['contact_id']);
-        putlog('invoice billing '.$invoiceArr['cf_invoice_billing_contact']);
-        putlog($resultInvoice);
+
         if ( !empty($account_id) &&  $resultInvoice['success']==1){
+            log_info('Invoice created successfully from quote', [
+                'invoice_id' => $resultInvoice['result']['id'] ?? 'unknown',
+                'assigned_to' => $invoiceArr['assigned_user_id'] ?? null,
+                'contact_id' => $invoiceArr['contact_id'] ?? null,
+                'billing_contact' => $invoiceArr['cf_invoice_billing_contact'] ?? null,
+                'grand_total' => $grandTotal
+            ]);
             $orgRecord = $vtod->retrieve($account_id);
             if (count($listselectedyearlevels)>0) $orgRecord['cf_accounts_selectedyearlevels']     = implode(" |##| ", $listselectedyearlevels);
-            
+
             // if (empty($orgRecord['cf_accounts_curriculumordered'])){
             //     $orgRecord['cf_accounts_curriculumordered'] = date('d-m-Y', time());
             // }
@@ -576,6 +566,11 @@ if($quoteId) {
                 "element" => $orgRecordJson
             );
             $dataOrgP = $vtod->curlPost($vtconfig_url . "webservice.php", $org_Params);
+        } else {
+            log_error('Invoice creation failed from quote', [
+                'result' => $resultInvoice,
+                'account_id' => $account_id ?? null
+            ]);
         }
 }
 else {
@@ -584,9 +579,8 @@ else {
     $quoteRecord['LineItems'] = $lineItem;
     $quoteRecord['hdnSubTotal'] = (float)$grandTotal;
     $quoteRecord['hdnGrandTotal'] = (float)$grandTotal;
-    
-    putlog('NO quote');
-    //         putlog($quoteRecord); 
+
+    log_debug('Creating invoice without quote', ['grand_total' => $grandTotal]);
     $invoiceArr  = $quoteRecord;
     
     sleep(SLEEP_SECTION);
@@ -638,8 +632,7 @@ else {
         $query_quote  = "SELECT * FROM Quotes WHERE account_id='".$invoiceArr['account_id'] ."' AND subject LIKE '%2024 School Partnership Program%' LIMIT 1; ";
         $res_quote = $vtod->query($query_quote);
         // $quoteId = $res_quote["id"];
-        putlog('res quote');
-        putlog($res_quote[0]);
+        log_debug('Retrieved quote for invoice', ['quote' => $res_quote[0] ?? null]);
         $invoiceArr["contact_id"] = $res_quote[0]["contact_id"];
         $invoiceArr["cf_invoice_billingcontact"] = $res_quote[0]["cf_quotes_billingcontactname"];
         $invoiceArr["quote_id"] = $res_quote[0]["id"];
@@ -654,10 +647,8 @@ else {
         //             $invoiceArr["shipping_&_handling"] = $shipping_handling_charge;
         
         $invoiceArr['cf_invoice_selectedyearlevels']     = implode(" |##| ", $listselectedyearlevels);
-        //         putlog('data Invoice');
-        //         putlog($invoiceArr); exit;
-        
-        
+
+
         $objectInvoiceJson = json_encode($invoiceArr);
         $invoiceParams = array(
             "sessionName" => $vtod->sessionId,
@@ -667,12 +658,16 @@ else {
         );
         $dataInvoice = $vtod->curlPost($vtconfig_url . "webservice.php", $invoiceParams);
         $resultInvoice = json_decode($dataInvoice,1);
-        putlog('resultInvoice NO quote');
-        putlog($resultInvoice);
+
         if ( !empty($orgRecord['id']) &&  $resultInvoice['success']==1){
-            
+            log_info('Invoice created successfully without quote', [
+                'invoice_id' => $resultInvoice['result']['id'] ?? 'unknown',
+                'account_id' => $account_id,
+                'grand_total' => $grandTotal
+            ]);
+
             if (count($listselectedyearlevels)>0) $orgRecord['cf_accounts_selectedyearlevels']     = implode(" |##| ", $listselectedyearlevels);
-            
+
             // if (empty($orgRecord['cf_accounts_curriculumordered'])){
             //     $orgRecord['cf_accounts_curriculumordered'] = date('d-m-Y', time());
             // }
@@ -683,5 +678,10 @@ else {
                 "element" => $orgRecordJson
             );
             $dataOrgP = $vtod->curlPost($vtconfig_url . "webservice.php", $org_Params);
+        } else {
+            log_error('Invoice creation failed without quote', [
+                'result' => $resultInvoice,
+                'account_id' => $account_id ?? null
+            ]);
         }
 }

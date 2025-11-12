@@ -25,7 +25,7 @@ if($_SERVER['REQUEST_METHOD'] != "POST") {
     echo json_encode(array('success'=>false));
     exit;
 }
-putlog($_REQUEST);
+log_debug('Program booking request received', ['request' => $_REQUEST]);
 
 $vtod = init_vtod();
 $vtconfig_url = $vtod_config["url"];
@@ -179,7 +179,7 @@ if($_REQUEST['email_address']) {
         }
         $contactArr['contacttype'] = 'Sales Qualified Lead';
         $contactArr['assigned_user_id'] = '19x1';
-        putlog($contactArr);
+        log_debug('Creating contact', ['contact_data' => $contactArr]);
         $objectContactJson = json_encode($contactArr);
         $contactParams = array(
             "sessionName" => $vtod->sessionId,
@@ -341,8 +341,7 @@ $dealArr['LineItems'] = $lineItem;
 $dealArr['hdnSubTotal'] = (float)$grandTotal;
 $dealArr['hdnGrandTotal'] = (float)$grandTotal;
 
-putlog('adding deal');
-putlog($dealArr);
+log_debug('Creating deal/potential', ['deal_data' => $dealArr]);
 
 $objectJson = json_encode($dealArr);
 $params = array(
@@ -352,7 +351,7 @@ $params = array(
     "elementType" => 'Potentials',
 );
 $data_potential = $vtod->curlPost($vtconfig_url . "webservice.php", $params);
-putlog($data_potential);
+log_debug('VTiger potential response', ['response' => json_decode($data_potential, true)]);
 $result_arr = json_decode($data_potential);
 if ($result_arr->result->id) {
     $potentialId = $result_arr->result->id;
@@ -449,8 +448,7 @@ if ($result_arr->result->id) {
         );
         $dataInvoice = $vtod->curlPost($vtconfig_url . "webservice.php", $invoiceParams);
         $resultInvoice = json_decode($dataInvoice,1);
-        putlog('resultInvoice');
-        putlog($resultInvoice);
+        log_debug('Invoice creation result', ['invoice_result' => $resultInvoice]);
         if ($resultInvoice['result']['id']) {
             echo json_encode(array('success'=>true,'message'=>$potentialId));
             exit;
@@ -459,11 +457,11 @@ if ($result_arr->result->id) {
             exit;
         }
     }
+    log_info('Program booking created successfully', ['potential_id' => $potentialId]);
     echo json_encode(array('success'=>true,'message'=>$potentialId));
-    putlog(array('success'=>true,'message'=>$potentialId));
     exit;
 } else {
+    log_error('Program booking creation failed', ['error' => $result_arr->error->message]);
     echo json_encode(array('success'=>false,'message'=>$result_arr->error->message));
-    putlog(array('success'=>false,'message'=>$result_arr->error->message));
     exit;
 }
