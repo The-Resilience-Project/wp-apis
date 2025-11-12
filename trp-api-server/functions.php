@@ -380,20 +380,6 @@ function create_vtcmauditrecords($lineItem,$quote_id,$product_id,$oldPrice,$newP
 
 }
 
-function putLogContents($file_name, $log = '', $action=''){
-    $year = date('Y');
-    $month = date('m');
-    $day = date('d');
-    $path =  dirname(__FILE__)."/logs/VTOD_API/$year/$month/";
-    if (!file_exists($path)) {
-        mkdir($path, 0777, true);
-    }
-    $file_name = $path .date('Y-m-d').'_'.$file_name .'.txt';
-
-    file_put_contents($file_name, date('Y-m-d H:i:s') . "===========$action\n", FILE_APPEND);
-    file_put_contents($file_name, $log."\n", FILE_APPEND);
-}
-
 function create_document($data, $file_path = null){
     global $vtod;
     $moduleName = 'Documents';
@@ -875,26 +861,6 @@ function convertTOSydney($fulldate){
  */
 function timetoampm($time){
     return date('h:iA',strtotime($time));
-}
-
-function putLogData($var, $file_name = "confirmButtonLog.txt")
-{
-    $content = date("Y-m-d H:i:s") . "\t";
-    if (is_array($var) || is_object($var)) {
-        $content .= print_r($var, true);
-    } else {
-        $content .= $var;
-    }
-    $content .= "\n";
-//    echo $content;
-    //   echo "<br>";
-
-    $path = 'logs/';
-    if (!file_exists($path)) {
-        mkdir($path, 0777, true);
-    }
-    $file_name = $path . $file_name;
-    file_put_contents($file_name, $content . "\n", FILE_APPEND);
 }
 
 function country_code($name) {
