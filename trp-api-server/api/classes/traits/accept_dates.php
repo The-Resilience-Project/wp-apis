@@ -18,8 +18,8 @@ trait AcceptDates {
             
     );
     protected function get_date_acceptance_body(){
-        
-        error_log(print_r($this->data,1));
+
+        log_debug('Building date acceptance body', ['data' => $this->data]);
         $body = "<ul>";
         foreach(self::event_date_mapping as $data_key => $event_name){
             if($this->isset_data($data_key)){

@@ -139,7 +139,7 @@ trait OrderResources {
     protected $comment = "";
     
     protected function get_invoice_items($quote_items){
-        error_log('quoteitems------'.print_r($quote_items,1));
+        log_debug('Processing quote items for 2026 invoice', ['quote_items' => $quote_items]);
         $product_items = array();
         $service_items = array();
         
@@ -303,7 +303,7 @@ trait OrderResources {
             } else if($quote_item->productid === self::engage_planners_id){
                 // do nothing if planners
             } else if($is_first_invoice){
-                error_log("First invoice ". $quote_item->productid);
+                log_debug('Processing first invoice item for 2026', ['product_id' => $quote_item->productid]);
                 // extend and inspire
                 array_push($service_items, array(
                     "qty" => $quote_item->quantity,
@@ -314,7 +314,7 @@ trait OrderResources {
                 ));
 
             } else{
-                error_log("Not first invoice ". $quote_item->productid);
+                log_debug('Skipping item on subsequent 2026 invoice', ['product_id' => $quote_item->productid]);
             }
         }
         
@@ -326,10 +326,12 @@ trait OrderResources {
             "section_no" => 1,
         ));
         $this->manual_price["SER111"] = $this->data["shipping"];
-        
-        error_log(print_r($service_items, true));
-        error_log(print_r($product_items, true));
-        error_log(print_r($this->manual_price, true));
+
+        log_debug('Invoice service and product items prepared for 2026', [
+            'service_items' => $service_items,
+            'product_items' => $product_items,
+            'manual_prices' => $this->manual_price
+        ]);
         $invoice_items = array();
 
         
@@ -338,14 +340,15 @@ trait OrderResources {
         foreach($service_items as $item){
             $service = "";
             $code = "";
-            
+
+
             if(array_key_exists('code', $item)){
                 $code = $item["code"];
-                error_log($code);
+                log_debug('Processing service by code', ['code' => $code]);
                 $service = $services[array_search($code, array_column($services, 'service_no'))];
             } else{
                 $service_id = $item["service_id"];
-                error_log($service_id);
+                log_debug('Processing service by ID', ['service_id' => $service_id]);
                 $service = $services[array_search($service_id, array_column($services, 'id'))];
             }
             
@@ -389,11 +392,12 @@ trait OrderResources {
                 "cf_invoice_salesaccount" => $product->cf_products_salesaccount,
                 "xero_account" => $product->xero_account,
             );
-            
+
+
             array_push($invoice_items, $invoice_item);
         }
-        error_log(print_r($invoice_items, true));
-        
+        log_debug('Final invoice items ready for 2026', ['invoice_items' => $invoice_items]);
+
         return $invoice_items;
     }
     
@@ -405,10 +409,13 @@ trait OrderResources {
                 array_push($this->engage_hub_courses, $inspire_year_level);
             }
         }
-        error_log('inspire: '. $inspire. $this->data["shipping_address"]);
+        log_debug('Processing hub courses for 2026', [
+            'inspire' => $inspire,
+            'shipping_address' => $this->data["shipping_address"]
+        ]);
         // staff inspire
         if(empty($inspire)){
-            error_log('empty inspire ');
+            log_debug('No inspire program for 2026, using Engage Only');
             $this->staff_inspire_hub_courses = self::inspire_hub_staff_parent_course_codes["Engage Only"];
             return;
         }
