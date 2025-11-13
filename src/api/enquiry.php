@@ -14,31 +14,78 @@ $data = get_request_data();
 // POST request
 // Store some data or something
 if ($method === 'POST') {
-    $data_controller;
-    
-    if($data["service_type"] === "School"){
-        $data_controller = new SchoolVTController($data);
-    }
-    elseif($data["service_type"] === "Workplace"){
-        $data_controller = new WorkplaceVTController($data);
-    }
-    elseif($data["service_type"] === "Early Years"){
-        $data_controller = new EarlyYearsVTController($data);
-    }
-    elseif($data["service_type"] === "Imperfects"){
-        $data_controller = new ImperfectsVTController($data);
-    }
-    else{
-        $data_controller = new GeneralVTController($data);
-    }
-    
-    $success = $data_controller->submit_enquiry();
-	
+    log_info("Enquiry request started", [
+        'endpoint' => 'enquiry',
+        'method' => $method,
+        'service_type' => $data['service_type'] ?? 'unknown',
+        'organization_name' => $data['organisation_name'] ?? $data['workplace_name_other'] ?? $data['school_name_other'] ?? 'unknown',
+        'contact_email' => $data['contact_email'] ?? 'unknown',
+        'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+    ]);
 
-	// Then, respond with a success
-	send_response([
-		'status' => $success ? 'success' : 'fail',
-	]);
-	exit;
+    log_debug("Enquiry data received", ['data' => $data]);
+
+    try {
+        $data_controller;
+
+        if($data["service_type"] === "School"){
+            log_debug("Creating SchoolVTController for enquiry");
+            $data_controller = new SchoolVTController($data);
+        }
+        elseif($data["service_type"] === "Workplace"){
+            log_debug("Creating WorkplaceVTController for enquiry");
+            $data_controller = new WorkplaceVTController($data);
+        }
+        elseif($data["service_type"] === "Early Years"){
+            log_debug("Creating EarlyYearsVTController for enquiry");
+            $data_controller = new EarlyYearsVTController($data);
+        }
+        elseif($data["service_type"] === "Imperfects"){
+            log_debug("Creating ImperfectsVTController for enquiry");
+            $data_controller = new ImperfectsVTController($data);
+        }
+        else{
+            log_debug("Creating GeneralVTController for enquiry", [
+                'service_type' => $data["service_type"] ?? 'not provided'
+            ]);
+            $data_controller = new GeneralVTController($data);
+        }
+
+        log_info("Calling submit_enquiry() to process enquiry");
+        $success = $data_controller->submit_enquiry();
+
+        if ($success) {
+            log_info("Enquiry processed successfully", [
+                'service_type' => $data['service_type'],
+                'organization' => $data['organisation_name'] ?? $data['workplace_name_other'] ?? $data['school_name_other'] ?? 'unknown',
+                'status' => 'success'
+            ]);
+        } else {
+            log_error("Enquiry processing failed", [
+                'service_type' => $data['service_type'],
+                'organization' => $data['organisation_name'] ?? $data['workplace_name_other'] ?? $data['school_name_other'] ?? 'unknown',
+                'status' => 'fail'
+            ]);
+        }
+
+        // Then, respond with a success
+        send_response([
+            'status' => $success ? 'success' : 'fail',
+        ]);
+        exit;
+
+    } catch (Exception $e) {
+        log_exception($e, [
+            'endpoint' => 'enquiry',
+            'service_type' => $data['service_type'] ?? 'unknown',
+            'organization' => $data['organisation_name'] ?? $data['workplace_name_other'] ?? $data['school_name_other'] ?? 'unknown'
+        ]);
+
+        send_response([
+            'status' => 'fail',
+            'message' => 'Error processing enquiry: ' . $e->getMessage()
+        ]);
+        exit;
+    }
 
 }

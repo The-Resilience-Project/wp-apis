@@ -42,15 +42,34 @@ class WorkplaceVTController extends VTController {
     }
     
     public function submit_enquiry(){
+        log_info("Starting workplace enquiry submission");
+
         try{
             $deal_close_date = date("d/m/Y", strtotime("+10 Days"));
-            
+            log_debug("Calculated deal close date", ['close_date' => $deal_close_date]);
+
+            log_debug("Capturing workplace customer info");
             $this->capture_customer_info();
+
+            log_info("Updating or creating workplace deal", [
+                'status' => 'New',
+                'close_date' => $deal_close_date,
+                'deal_name' => $this->deal_name
+            ]);
             $this->update_or_create_deal("New", $deal_close_date);
+
+            log_debug("Creating workplace enquiry record");
             $this->create_enquiry();
+
+            log_info("Workplace enquiry submitted successfully");
             return true;
         }
         catch(Exception $e){
+            log_exception($e, [
+                'method' => 'submit_enquiry',
+                'controller' => 'WorkplaceVTController',
+                'organization' => $this->data['organisation_name'] ?? $this->data['workplace_name_other'] ?? 'unknown'
+            ]);
             return false;
         }
     }
@@ -80,40 +99,72 @@ class WorkplaceVTController extends VTController {
 
 
     public function submit_event_registration(){
+        log_info("Starting workplace event registration");
+
         try{
-            // error_log(print_r($this->data, 1));
             $event = $this->get_event_details($this->data['event_id']);
-            
+            log_debug("Retrieved event details", [
+                'event_id' => $this->data['event_id'],
+                'event_name' => $event->eventtitle ?? 'unknown'
+            ]);
+
             if($this->isset_data('role_workplace')){
                 $this->data['job_title'] = $this->data['role_workplace'];
             }
-            
+
             if($this->isset_data('role_school')){
                 $this->data['job_title'] = $this->data['role_school'];
             }
-            
+
             if($this->isset_data('role_ey')){
                 $this->data['job_title'] = $this->data['role_ey'];
             }
-            
+
+            log_debug("Capturing customer info for event registration");
             $this->capture_customer_info();
-            
+
             if($this->data["source_form"] === "Workplace Webinar Recording 2025"){
                 $size = (int)$this->data["num_of_employees"] >= 100 ? " >100" : " <100";
-                $this->data["source_form"] .= $size;   
-                
+                $this->data["source_form"] .= $size;
+                log_debug("Workplace webinar recording detected", [
+                    'size' => $size,
+                    'num_employees' => $this->data["num_of_employees"]
+                ]);
+
                 if($this->organisation_details["cf_accounts_2025confirmationstatus"] === "" and in_array($this->data["organisation_sub_type"], array("Professional Services", "Healthcare","Government","Not for Profit","Retail/Wholesale"))){
                     $deal_close_date = date("d/m/Y", strtotime("+10 Days"));
+                    log_info("Creating workplace deal for webinar recording", [
+                        'status' => 'In Campaign',
+                        'close_date' => $deal_close_date,
+                        'org_sub_type' => $this->data["organisation_sub_type"],
+                        '2025_confirmation_status' => 'empty'
+                    ]);
                     $this->create_deal("In Campaign", $deal_close_date);
-                    // $this->update_deal_with_wp_webinar_recording($deal_close_date);
+                } else {
+                    log_debug("Skipping deal creation", [
+                        '2025_confirmation_status' => $this->organisation_details["cf_accounts_2025confirmationstatus"],
+                        'org_sub_type' => $this->data["organisation_sub_type"] ?? 'unknown'
+                    ]);
                 }
-            } 
-            
+            }
+
+            log_debug("Registering contact for event", [
+                'event_id' => $this->data['event_id'],
+                'contact_email' => $this->data['contact_email'] ?? 'unknown'
+            ]);
             $this->register_contact_for_event($event);
 
+            log_info("Workplace event registration completed successfully");
+            return true;
 
         }
         catch(Exception $e){
+            log_exception($e, [
+                'method' => 'submit_event_registration',
+                'controller' => 'WorkplaceVTController',
+                'event_id' => $this->data['event_id'] ?? 'unknown',
+                'organization' => $this->data['organisation_name'] ?? $this->data['workplace_name_other'] ?? 'unknown'
+            ]);
             return false;
         }
     }
