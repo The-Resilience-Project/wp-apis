@@ -469,6 +469,8 @@ trait OrderResources {
     }
     
     protected function create_invoice(){
+        log_info("Starting invoice creation process");
+
         $quote = $this->get_quote();
         $deal = $this->get_deal();
         $org = $this->get_org();
@@ -481,6 +483,10 @@ trait OrderResources {
         $line_items;
 
         if($quote){
+            log_info("Using quote data for invoice", [
+                'quote_id' => $quote->id,
+                'deal_id' => $quote->potential_id
+            ]);
             $quote_id = $quote->id;
             $deal_id = $quote->potential_id;
             $billing_contact = $quote->cf_quotes_billingcontactname;
@@ -489,6 +495,9 @@ trait OrderResources {
             // $assignee = $quote->assigned_user_id;
             $line_items = $quote->lineItems;
         } else {
+            log_info("Using deal data for invoice (no quote found)", [
+                'deal_id' => $deal->id
+            ]);
             // get deal instead
             $deal_id = $deal->id;
             $billing_contact = $deal->cf_potentials_billingcontact;
@@ -497,6 +506,8 @@ trait OrderResources {
             // $assignee = $deal->assigned_user_id;
             $line_items = $deal->lineItems;
         }
+
+        log_debug("Processing invoice line items", ['line_items_count' => count($line_items)]);
         $invoice_line_items = $this->get_invoice_items($line_items);
         
         $this->get_hub_courses($deal->cf_potentials_presentations);
@@ -568,13 +579,39 @@ trait OrderResources {
         
         if($this->isset_data("hold_until")){
             $request_body["holdUntil"] = $this->data["hold_until"];
-        }                    
+        }
+
+        log_info("Sending invoice creation request to VTiger", [
+            'invoice_name' => $this->previous_invoice_name,
+            'deal_id' => $deal_id,
+            'org_id' => $org_id,
+            'status' => $status,
+            'po_number' => $this->data["po_number"] ?? 'none'
+        ]);
 
         $response = $this->post_request_with_line_items("createInvoice", $request_body, $invoice_line_items);
+
+        if($response && isset($response->success) && $response->success){
+            log_info("Invoice created successfully in VTiger", [
+                'invoice_id' => $response->result->id ?? 'unknown',
+                'invoice_name' => $this->previous_invoice_name
+            ]);
+        } else {
+            log_error("Invoice creation failed in VTiger", [
+                'invoice_name' => $this->previous_invoice_name,
+                'response' => $response
+            ]);
+        }
     }
     
     
     protected function get_quote(){
+        $school_identifier = $this->isset_data("school_account_no") ? $this->data["school_account_no"] : $this->data["school_name_other"];
+        log_debug("Looking up quote in VTiger", [
+            'quote_name' => $this->previous_quote_name,
+            'school' => $school_identifier
+        ]);
+
         $response;
         $request_body = array(
             "name"=> $this->previous_quote_name
@@ -586,15 +623,25 @@ trait OrderResources {
             $request_body["organisationName"] = $this->data["school_name_other"];
             $response = $this->post_request_to_vt("getQuoteWithName", $request_body, true);
         }
-        
+
         if(!empty($response) and !empty($response->result) and !empty($response->result[0])){
+            log_info("Quote found in VTiger", [
+                'quote_id' => $response->result[0]->id,
+                'quote_name' => $this->previous_quote_name
+            ]);
             return $response->result[0];
         }
+        log_debug("No quote found in VTiger", ['quote_name' => $this->previous_quote_name]);
         return null;
     }
     
     protected function get_deal(){
-        
+        $school_identifier = $this->isset_data("school_account_no") ? $this->data["school_account_no"] : $this->data["school_name_other"];
+        log_debug("Looking up deal in VTiger", [
+            'deal_name' => $this->previous_deal_name,
+            'school' => $school_identifier
+        ]);
+
         $response;
         $request_body = array(
             "dealName"=> $this->previous_deal_name
@@ -606,14 +653,23 @@ trait OrderResources {
             $request_body["organisationName"] = $this->data["school_name_other"];
             $response = $this->post_request_to_vt("getDealDetails", $request_body, true);
         }
-        
+
         if(!empty($response) and !empty($response->result) and !empty($response->result[0])){
+            log_info("Deal found in VTiger", [
+                'deal_id' => $response->result[0]->id,
+                'deal_name' => $this->previous_deal_name,
+                'sales_stage' => $response->result[0]->sales_stage ?? 'unknown'
+            ]);
             return $response->result[0];
         }
+        log_debug("No deal found in VTiger", ['deal_name' => $this->previous_deal_name]);
         return null;
     }
     
     protected function get_org(){
+        $school_identifier = $this->isset_data("school_account_no") ? $this->data["school_account_no"] : $this->data["school_name_other"];
+        log_debug("Looking up organization in VTiger", ['school' => $school_identifier]);
+
         $response;
         if($this->isset_data("school_account_no")){
             $request_body["organisationAccountNo"] = $this->data["school_account_no"];
@@ -622,25 +678,34 @@ trait OrderResources {
             $request_body["organisationName"] = $this->data["school_name_other"];
             $response = $this->post_request_to_vt("getOrgWithName", $request_body, true);
         }
-        
+
         if(!empty($response) and !empty($response->result) and !empty($response->result[0])){
+            log_info("Organization found in VTiger", [
+                'org_id' => $response->result[0]->id,
+                'org_name' => $response->result[0]->accountname ?? 'unknown'
+            ]);
             return $response->result[0];
         }
-        
-        return null; 	
-        
-        
+
+        log_warning("Organization not found in VTiger", ['school' => $school_identifier]);
+        return null;
+
+
     }
     
     public function order_resources(){
-        
+
         try{
             $this->create_invoice();
 
             return true;
         }
         catch(Exception $e){
+            log_exception($e, [
+                'method' => 'order_resources',
+                'school' => $this->isset_data("school_account_no") ? $this->data["school_account_no"] : $this->data["school_name_other"] ?? 'unknown'
+            ]);
             return false;
-        }  
+        }
     }
 }
