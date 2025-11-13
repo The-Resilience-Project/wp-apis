@@ -90,15 +90,6 @@ functions:
             - httpApi:
                 path: /api/confirm.php
                 method: POST
-
-    confirm-test:
-        handler: src/api/test/confirm.php
-        layers:
-            - ${bref:layer.php-82-fpm}
-        events:
-            - httpApi:
-                path: /api/test/confirm.php
-                method: POST
     
     accept_dates:
         handler: src/api/accept_dates.php
