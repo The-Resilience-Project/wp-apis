@@ -15,7 +15,7 @@ class WorkplaceVTController extends VTController {
     use Lead;
 
 	protected $organisation_type = "Workplace";
-	protected $deal_name = "2025 Workplace Partner";
+	protected $deal_name = "2026 Workplace Partner";
 	protected $deal_type = "Workplace";
 	protected $deal_org_type = "Workplace - New";
 	protected $enquiry_type = "Workplace";
