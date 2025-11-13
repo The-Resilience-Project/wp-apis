@@ -1,6 +1,5 @@
 {
     "require": {
-        "bref/bref": "^2.4",
-        "sentry/sentry": "^4.18"
+        "bref/bref": "^2.4"
     }
 }
