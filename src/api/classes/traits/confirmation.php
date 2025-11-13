@@ -172,30 +172,64 @@ trait Confirmation {
     }
 
     public function confirm_program(){
+        log_info("Starting program confirmation process");
+
         try{
             if(!$this->isset_data("participating_num_of_students") and $this->isset_data("participating_journal_students") and $this->isset_data("participating_planner_students")){
                 $this->data["participating_num_of_students"] = (int)$this->data["participating_journal_students"] + (int)$this->data["participating_planner_students"];
+                log_debug("Calculated participating students", [
+                    'total_students' => $this->data["participating_num_of_students"]
+                ]);
             }
-                
+
             $deal_close_date = date("d/m/Y");
+            log_debug("Capturing main customer info");
             $this->capture_main_customer_info();
+
+            log_info("Updating or creating deal in VTiger", [
+                'status' => 'Deal Won',
+                'close_date' => $deal_close_date
+            ]);
             $this->update_or_create_deal("Deal Won", $deal_close_date);
+
+            log_debug("Capturing billing contact info");
             $this->capture_billing_contact_info();
-            
+
+            log_debug("Getting line items for confirmation");
             $line_items = $this->get_line_items();
-            $total = array_sum(array_map(function($item) { 
-                return $item['listprice'] * $item['quantity']; 
+            $total = array_sum(array_map(function($item) {
+                return $item['listprice'] * $item['quantity'];
             }, $line_items));
-            
+
+            log_info("Processing deal confirmation", [
+                'line_items_count' => count($line_items),
+                'total_amount' => $total
+            ]);
+
+            log_debug("Updating deal with confirmation details");
             $this->update_deal_with_confirmation($total);
+
+            log_debug("Setting deal line items");
             $this->set_deal_line_items($line_items, $total);
 
+            log_info("Creating quote for confirmation", ['total_amount' => $total]);
             $this->create_quote($line_items, $total);
+
+            log_debug("Updating years with TRP to 2026");
             $this->update_years_with_trp("2026");
+
+            log_debug("Creating SEIP record");
             $this->createSEIP();
+
+            log_info("Program confirmation completed successfully");
+            return true;
         }
         catch(Exception $e){
+            log_exception($e, [
+                'method' => 'confirm_program',
+                'school' => $this->isset_data("school_account_no") ? $this->data["school_account_no"] : $this->data["school_name_other"] ?? 'unknown'
+            ]);
             return false;
-        }        
+        }
     }
 }
