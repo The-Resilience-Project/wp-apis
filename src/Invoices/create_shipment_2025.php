@@ -4,19 +4,6 @@ require_once("shipstation.php");
 
 require "../init.php";
 
-// Log API call to Sentry
-if (function_exists('\Sentry\captureMessage')) {
-    \Sentry\withScope(function (\Sentry\State\Scope $scope) {
-        $scope->setTag('endpoint', 'create_shipment_2025');
-        $scope->setTag('method', $_SERVER['REQUEST_METHOD'] ?? 'unknown');
-        $scope->setContext('request', [
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-        ]);
-        \Sentry\captureMessage('API: create_shipment_2025 endpoint called', \Sentry\Severity::info());
-    });
-}
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: PUT, GET, POST");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");

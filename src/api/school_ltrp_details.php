@@ -11,19 +11,6 @@ header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Ac
 $method = get_method();
 $data = get_request_data();
 
-// Log API call to Sentry
-if (function_exists('\Sentry\captureMessage')) {
-    \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($method) {
-        $scope->setTag('endpoint', 'school_ltrp_details');
-        $scope->setTag('method', $method);
-        $scope->setContext('request', [
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-        ]);
-        \Sentry\captureMessage('API: school_ltrp_details endpoint called', \Sentry\Severity::info());
-    });
-}
-
 if ($method === 'GET') {
     $data_controller = new SchoolVTController($data);
     $org_id = $data["org_id"];

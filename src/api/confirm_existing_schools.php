@@ -11,19 +11,6 @@ header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Ac
 $method = get_method();
 $data = get_request_data();
 
-// Log API call to Sentry
-if (function_exists('\Sentry\captureMessage')) {
-    \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($method) {
-        $scope->setTag('endpoint', 'confirm_existing_schools');
-        $scope->setTag('method', $method);
-        $scope->setContext('request', [
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-        ]);
-        \Sentry\captureMessage('API: confirm_existing_schools endpoint called', \Sentry\Severity::info());
-    });
-}
-
 if ($method === 'POST') {
     $data_controller = new ExistingSchoolVTController($data);
     

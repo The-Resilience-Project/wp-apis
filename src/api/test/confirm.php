@@ -6,7 +6,7 @@ require dirname(__FILE__)."/../utils.php";
 require dirname(__FILE__)."/../api_helpers.php";
 require dirname(__FILE__)."/../../init.php";
 
-// Now we can use log_debug which logs to both error_log AND Sentry
+// Now we can use log_debug which logs to error_log
 log_debug('Test confirm endpoint - file loaded successfully', [
     'request_method' => $_SERVER['REQUEST_METHOD'] ?? 'unknown',
     'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'unknown',
@@ -20,20 +20,6 @@ header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Ac
 
 $method = get_method();
 $data = get_request_data();
-
-// Log API call to Sentry
-if (function_exists('\Sentry\captureMessage')) {
-    \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($method, $data) {
-        $scope->setTag('endpoint', 'confirm');
-        $scope->setTag('method', $method);
-        $scope->setTag('service_type', $data['service_type'] ?? 'unknown');
-        $scope->setContext('request', [
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-        ]);
-        \Sentry\captureMessage('API: confirm endpoint called', \Sentry\Severity::info());
-    });
-}
 
 if ($method === 'POST') {
     // Test endpoint - just log and return success

@@ -5,19 +5,6 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL  & ~(E_STRICT|E_NOTICE) );/**/
 
-// Log API call to Sentry
-if (function_exists('\Sentry\captureMessage')) {
-    \Sentry\withScope(function (\Sentry\State\Scope $scope) {
-        $scope->setTag('endpoint', 'createInvoice');
-        $scope->setTag('method', $_SERVER['REQUEST_METHOD'] ?? 'unknown');
-        $scope->setContext('request', [
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-        ]);
-        \Sentry\captureMessage('API: createInvoice endpoint called', \Sentry\Severity::info());
-    });
-}
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: PUT, GET, POST");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
