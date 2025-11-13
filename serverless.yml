@@ -1,0 +1,259 @@
+service: trp-api
+
+provider:
+    name: aws
+    region: ap-southeast-2
+    runtime: provided.al2
+    environment:
+        SENTRY_DSN: https://4ad2b949a90bfaf4665bba97d1e863c9@o4510280953364480.ingest.de.sentry.io/4510281020801104
+        # Add any environment variables your PHP needs here
+        # APP_ENV: production
+
+functions:
+    # Main API endpoints
+    enquiry:
+        handler: src/api/enquiry.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/enquiry.php
+                method: POST
+    
+    qualify:
+        handler: src/api/qualify.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/qualify.php
+                method: POST
+    
+    confirm_existing_schools:
+        handler: src/api/confirm_existing_schools.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/confirm_existing_schools.php
+                method: POST
+    
+    seminar_registration:
+        handler: src/api/seminar_registration.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/seminar_registration.php
+                method: POST
+    
+    order_resources:
+        handler: src/api/order_resources.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/order_resources.php
+                method: POST
+    
+    school_confirmation_form_details:
+        handler: src/api/school_confirmation_form_details.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/school_confirmation_form_details.php
+                method: GET
+    
+    prize_pack:
+        handler: src/api/prize_pack.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/prize_pack.php
+                method: POST
+    
+    register:
+        handler: src/api/register.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/register.php
+                method: POST
+    
+    confirm:
+        handler: src/api/confirm.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/confirm.php
+                method: POST
+
+    confirm-test:
+        handler: src/api/test/confirm.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/test/confirm.php
+                method: POST
+    
+    accept_dates:
+        handler: src/api/accept_dates.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/accept_dates.php
+                method: POST
+    
+    ey_confirmation_form_details:
+        handler: src/api/ey_confirmation_form_details.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/ey_confirmation_form_details.php
+                method: GET
+    
+    calculate_shipping:
+        handler: src/api/calculate_shipping.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/calculate_shipping.php
+                method: POST
+    
+    calendly_event:
+        handler: src/api/calendly_event.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/calendly_event.php
+                method: POST
+    
+    school_ltrp_details:
+        handler: src/api/school_ltrp_details.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/school_ltrp_details.php
+                method: GET
+    
+    submit_ca:
+        handler: src/api/submit_ca.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/submit_ca.php
+                method: POST
+    
+    school_curric_ordering_details:
+        handler: src/api/school_curric_ordering_details.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/school_curric_ordering_details.php
+                method: GET
+    
+    order_resources_2026:
+        handler: src/api/order_resources_2026.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /api/order_resources_2026.php
+                method: POST
+    
+    # Invoice endpoints
+    createShipment:
+        handler: src/Invoices/createShipment.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Invoices/createShipment.php
+                method: POST
+    
+    createInvoice:
+        handler: src/Invoices/createInvoice.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Invoices/createInvoice.php
+                method: POST
+    
+    updateXeroCodeInvoiceItem:
+        handler: src/Invoices/58850_updateXeroCodeInvoiceItem.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Invoices/58850_updateXeroCodeInvoiceItem.php
+                method: POST
+    
+    create_shipment_2025:
+        handler: src/Invoices/create_shipment_2025.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Invoices/create_shipment_2025.php
+                method: POST
+    
+    # Potential endpoints
+    createNewProgramBooking:
+        handler: src/Potentials/createNewProgramBooking.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Potentials/createNewProgramBooking.php
+                method: POST
+    
+    getEventPlanned:
+        handler: src/Potentials/getEventPlanned.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Potentials/getEventPlanned.php
+                method: GET
+    
+    # Event endpoints
+    sendInvitation:
+        handler: src/Events/54701_sendInvitation.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Events/54701_sendInvitation.php
+                method: POST
+    
+    # Webhook endpoints
+    woocommerce_order:
+        handler: src/Webhooks/Order.php
+        layers:
+            - ${bref:layer.php-82-fpm}
+        events:
+            - httpApi:
+                path: /Webhooks/Order.php
+                method: POST
+
+plugins:
+    - ./vendor/bref/bref
+
+package:
+    patterns:
+        - '!.git/**'
+        - '!tests/**'
+        - '!.env'
