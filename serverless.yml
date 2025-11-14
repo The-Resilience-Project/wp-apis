@@ -4,6 +4,7 @@ provider:
     name: aws
     region: ap-southeast-2
     runtime: provided.al2
+    timeout: 29  # HTTP API Gateway has a hard limit of 30 seconds
     environment:
         # Add any environment variables your PHP needs here
         # APP_ENV: production

@@ -14,14 +14,22 @@ class dhpdo extends PDO {
 		$user=$config["dbuser"];
 		$passwd=$config["dbpass"];
 		$options = array(
-			PDO::ATTR_PERSISTENT => true, 
-			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+			PDO::ATTR_PERSISTENT => true,
+			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+			PDO::ATTR_TIMEOUT => 10,  // Connection timeout in seconds
+			PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"
 		);
 
 		try {
 			parent::__construct($dsn, $user, $passwd, $options);
+			// Set MySQL session timeouts after connection
+			$this->exec("SET SESSION wait_timeout = 30");
+			$this->exec("SET SESSION interactive_timeout = 30");
 		} catch (PDOException $e) {
 			$this->error = $e->getMessage();
+			// Log the connection error
+			error_log('[ERROR] Database connection failed: ' . $e->getMessage());
+			throw $e;  // Re-throw to allow proper error handling
 		}
 		if(isset($config["debug"])) {
 			$this->setDebug($config["debug"]);

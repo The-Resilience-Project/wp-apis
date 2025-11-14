@@ -27,7 +27,10 @@ try{
 function init_vtod() {
     global $vtod_config;
     try{
-        $vtod = new dhvt($vtod_config["url"]."webservice.php",$vtod_config["username"],$vtod_config["accesskey"]);
+        // Use configured timeout or default to 25 seconds (HTTP API Gateway limit is 30s)
+        $timeout = isset($vtod_config["timeout"]) ? $vtod_config["timeout"] : 25;
+        $vtod = new dhvt($vtod_config["url"]."webservice.php",$vtod_config["username"],$vtod_config["accesskey"],$timeout);
+        log_info("Vtiger client initialized", ['timeout' => $timeout]);
         return $vtod;
     }catch (Exception $e){
         log_exception($e, ['component' => 'vtiger_connection']);

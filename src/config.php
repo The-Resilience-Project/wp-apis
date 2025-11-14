@@ -4,6 +4,9 @@
 $vtod_config["url"] = "https://theresilienceproject.od2.vtiger.com/";
 $vtod_config["username"] = "maddie@theresilienceproject.com.au";
 $vtod_config["accesskey"] = "EKCC5OlQjHZjoOMh";
+// Vtiger timeout must be less than Lambda timeout (29s) to avoid API Gateway timeouts
+// HTTP API Gateway has a hard limit of 30 seconds, so we use 25s for Vtiger + 4s overhead
+$vtod_config["timeout"] = 25;
 
 //$default_assigned_to = "19x1";
 $debug=true;
@@ -27,3 +30,5 @@ $local_config['dbpass'] = 'bWaLy]7jgv1$';
 $vt9_config["url"] = "https://theresilienceproject.od2.vtiger.com/";
 $vt9_config["username"] = "maddie@theresilienceproject.com.au";
 $vt9_config["accesskey"] = "EKCC5OlQjHZjoOMh";
+// Vtiger timeout must be less than Lambda timeout (29s)
+$vt9_config["timeout"] = 25;

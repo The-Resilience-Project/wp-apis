@@ -1,6 +1,6 @@
 <?php
 class dhrest {
-	public static function call($type,$uri,$parms=array(),$auth=false,$timeout=30,$ssl_verify=false) {
+	public static function call($type,$uri,$parms=array(),$auth=false,$timeout=20,$ssl_verify=false) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL,$uri);
 		//curl_setopt($ch, CURLOPT_VERBOSE, true);
@@ -10,6 +10,7 @@ class dhrest {
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $ssl_verify);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);  // Connection timeout separate from total timeout
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		//curl_setopt($ch, CURLOPT_VERBOSE, true);
 		if($auth !== false) {
@@ -33,31 +34,41 @@ class dhrest {
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $parms);
 		}
 		
-		
+
 		$response  = curl_exec($ch);
 		$info = curl_getinfo($ch);
+		$error = curl_error($ch);
+		$errno = curl_errno($ch);
 		curl_close($ch);
+
+		// Log cURL errors
+		if ($errno) {
+			error_log('[ERROR] cURL request failed: ' . $error . ' (errno: ' . $errno . ') to ' . $uri);
+		}
+
 		//echo $parms."\n";
 		return array(
 			'status'=>$info['http_code'],
 			'header'=>trim(substr($response,0,$info['header_size'])),
-			'data'=>substr($response,$info['header_size'])
+			'data'=>substr($response,$info['header_size']),
+			'error'=>$error,
+			'errno'=>$errno
 		);
 	}
 	
-	public static function get($uri,$parms=array(),$auth=false,$timeout=30) {
+	public static function get($uri,$parms=array(),$auth=false,$timeout=20) {
 		return dhrest::call("GET",$uri,$parms,$auth,$timeout);
 	}
-	public static function post($uri,$parms=array(),$auth=false,$timeout=30) {
+	public static function post($uri,$parms=array(),$auth=false,$timeout=20) {
 		return dhrest::call("POST",$uri,$parms,$auth,$timeout);
 	}
-	public static function put($uri,$parms=array(),$auth=false,$timeout=30) {
+	public static function put($uri,$parms=array(),$auth=false,$timeout=20) {
 		return dhrest::call("PUT",$uri,$parms,$auth,$timeout);
 	}
-	public static function head($uri,$parms=array(),$auth=false,$timeout=30) {
+	public static function head($uri,$parms=array(),$auth=false,$timeout=20) {
 		return dhrest::call("HEAD",$uri,$parms,$auth,$timeout);
 	}
-	public static function delete($uri,$parms=array(),$auth=false,$timeout=30) {
+	public static function delete($uri,$parms=array(),$auth=false,$timeout=20) {
 		return dhrest::call("DELETE",$uri,$parms,$auth,$timeout);
 	}
 }

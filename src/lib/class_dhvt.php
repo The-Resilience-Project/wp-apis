@@ -24,16 +24,18 @@ class dhvt {
 	
 	public $debug=false;
 	public $echo_debug=false;
-	
+
 	public $api_delay=0; //value in seconds
-	
-	function __construct($url,$userName,$accessKey) {
+	public $timeout=25; // Vtiger API timeout in seconds (must be less than Lambda/API Gateway timeout)
+
+	function __construct($url,$userName,$accessKey,$timeout=25) {
 
 		if ($userName && strpos($userName, '+') !== false) {
 		    $userName = str_replace('+', '%2B', $userName );
 		}
 
 		$this->url = $url;
+		$this->timeout = $timeout;
 		$this->authenticate($userName,$accessKey);
 	}
 	
@@ -247,19 +249,19 @@ class dhvt {
 		
 		switch(strtolower($type)) {
 			case "get":
-				$return = $this->parse(dhrest::get($url,$parms));
+				$return = $this->parse(dhrest::get($url,$parms,false,$this->timeout));
 				break;
 			case "post":
-				$return = $this->parse(dhrest::post($url,$parms));
+				$return = $this->parse(dhrest::post($url,$parms,false,$this->timeout));
 				break;
 			case "put":
-				$return = $this->parse(dhrest::put($url,$parms));
+				$return = $this->parse(dhrest::put($url,$parms,false,$this->timeout));
 				break;
 			case "delete":
-				$return = $this->parse(dhrest::delete($url,$parms));
+				$return = $this->parse(dhrest::delete($url,$parms,false,$this->timeout));
 				break;
 			case "head":
-				$return = $this->parse(dhrest::head($url,$parms));
+				$return = $this->parse(dhrest::head($url,$parms,false,$this->timeout));
 				break;
 			default:
 				$return = false;
@@ -356,7 +358,8 @@ class dhvt {
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
+                CURLOPT_TIMEOUT => $this->timeout,
+                CURLOPT_CONNECTTIMEOUT => 10,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'POST',
@@ -369,7 +372,8 @@ class dhvt {
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
+                CURLOPT_TIMEOUT => $this->timeout,
+                CURLOPT_CONNECTTIMEOUT => 10,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'POST',
@@ -377,6 +381,15 @@ class dhvt {
             ));
         }
         $response = curl_exec($curl);
+        $error = curl_error($curl);
+        $errno = curl_errno($curl);
+        curl_close($curl);
+
+        // Log cURL errors
+        if ($errno) {
+            error_log('[ERROR] Vtiger curlPost failed: ' . $error . ' (errno: ' . $errno . ') to ' . $url);
+        }
+
 		return $response;
 	}
 }
