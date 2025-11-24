@@ -97,20 +97,26 @@ class ShipStationOrder {
         }
 
         $this->pushlog("Found invoice data in VT");
+        $this->pushlog("Invoice No: " . $this->invoice_data['invoice_no']);
+        $this->pushlog("Invoice Subject: " . $this->invoice_data['subject']);
         $this->invoice_id = $this->invoice_data['id'];
         if(str_contains($this->invoice_data['subject'], "Workplace")){
             // workplace store
             $this->store_id = self::bulk_order_store_id;
             $this->shipstation_order_id = "2".$this->invoice_data['invoice_no'];
+            $this->pushlog("Using WORKPLACE store (ID: " . $this->store_id . ")");
         } else if(str_contains($this->invoice_data['subject'], "2026")){
             // 2026 store
             $this->store_id = self::school_26_store_id;
             $this->shipstation_order_id = $this->invoice_data['invoice_no'];
+            $this->pushlog("Using 2026 SCHOOL store (ID: " . $this->store_id . ")");
         } else {
             // 2025 store
             $this->store_id = self::school_25_store_id;
             $this->shipstation_order_id = $this->invoice_data['invoice_no'];
+            $this->pushlog("Using 2025 SCHOOL store (ID: " . $this->store_id . ")");
         }
+        $this->pushlog("ShipStation Order Number: " . $this->shipstation_order_id);
 
         // check if order needs to be created
         if($this->count_line_items() == 0 ){
@@ -240,9 +246,11 @@ class ShipStationOrder {
 
     private function set_account_data(){
         if($this->invoice_data['account_id']) {
+            $this->pushlog("Retrieving account data for: " . $this->invoice_data['account_id']);
             $account_data = $this->vtod->retrieve($this->invoice_data['account_id']);
             if($account_data['accountname']) {
                 $this->account_name = $account_data['accountname'];
+                $this->pushlog("Account name: " . $this->account_name);
             }
         }
     }
@@ -269,15 +277,18 @@ class ShipStationOrder {
         $this->ship_to["addressVerified"] = "Address validated successfully";
 
         if(empty($this->invoice_data['contact_id'])) {
+            $this->pushlog("No contact ID on invoice");
             return;
         }
 
+        $this->pushlog("Retrieving contact data for: " . $this->invoice_data['contact_id']);
         $contact_data = $this->vtod->retrieve($this->invoice_data['contact_id']);
         if($contact_data['phone']) {
             $this->ship_to["phone"] = $contact_data['phone'];
         }
         if($contact_data['email']) {
             $this->contact_email = $contact_data['email'];
+            $this->pushlog("Contact email: " . $this->contact_email);
         }
         if($contact_data['firstname']) {
             $this->ship_to["name"] = $contact_data['firstname'];
@@ -285,7 +296,8 @@ class ShipStationOrder {
         if($contact_data['lastname']) {
             $this->ship_to["name"] .= " ".$contact_data['lastname'];
         }
-        
+        $this->pushlog("Ship to name: " . $this->ship_to["name"]);
+
     }
 
     private function count_line_items(){
@@ -293,35 +305,44 @@ class ShipStationOrder {
         $count = 0;
 
         foreach($line_items as $line_item) {
-            
+
             if(in_array($line_item['section_name'], self::item_sections)){
                 $count++;
             }
         }
+        $this->pushlog("Shippable line items count: " . $count);
         return $count;
     }
 
     private function format_items(){
         $line_items = $this->invoice_data['LineItems'];
+        $this->pushlog("Total line items in invoice: " . count($line_items));
 
         $product_ids = array();
-        
+
         foreach($line_items as $line_item) {
-            
+            $this->pushlog("Processing line item: " . $line_item['product_name'] . " | Section: " . $line_item['section_name']);
+
             if(!in_array($line_item['section_name'], self::item_sections)){
+                $this->pushlog("-- Skipping (not in allowed sections)");
                 continue;
             }
             $product_ids[] = "'".$line_item['productid']."'";
         }
-        
+
+        $this->pushlog("Product IDs to query: " . count($product_ids));
         $sql = "SELECT * FROM Products WHERE id IN (".implode(',',$product_ids).");";
+        $this->pushlog("SQL Query: " . $sql);
         $products = $this->vtod->query($sql);
+        $this->pushlog("Products retrieved from VT: " . count($products));
         $product_map = array();
-        
+
         foreach($products as $p){
             $product_map[$p['id']] = array("weight" => $p['cf_products_weight'], "sku" => $p["cf_products_skunumber"]);
+            $this->pushlog("Product " . $p['id'] . " | Weight: " . $p['cf_products_weight'] . "g | SKU: " . $p["cf_products_skunumber"]);
         }
 
+        $this->pushlog("---- Building ShipStation Items ----");
         foreach($line_items as $line_item) {
 
             if($line_item['product_name'] === 'Shipping costs'){
@@ -330,16 +351,20 @@ class ShipStationOrder {
                 continue;
             }
             if(!in_array($line_item['section_name'], self::item_sections)){
+                $this->pushlog("-- Skipping " . $line_item['product_name'] . " (section: " . $line_item['section_name'] . ")");
                 continue;
             }
             if(in_array($line_item['productid'], self::teacher_sem)){
-              continue;  
+                $this->pushlog("-- Skipping " . $line_item['product_name'] . " (teacher SEM product)");
+                continue;
             }
             $qty = (int)$line_item['quantity'];
             $product_data = $product_map[$line_item['productid']];
             $product_sku = $product_data["sku"];
             $product_weight = $product_data["weight"];
-            $this->total_weight += (float)$product_weight * $qty;
+            $item_total_weight = (float)$product_weight * $qty;
+            $this->total_weight += $item_total_weight;
+            $this->pushlog("-- Adding: " . $line_item['product_name'] . " | Qty: " . $qty . " | Unit Weight: " . $product_weight . "g | Item Total: " . $item_total_weight . "g");
             $this->items[] = array(
                 'name' => $line_item['product_name'],
                 'quantity' => $qty,
@@ -347,7 +372,8 @@ class ShipStationOrder {
                 'sku' => $product_sku,
             );
         }
-        
+        $this->pushlog("---- TOTAL SHIPMENT WEIGHT: " . $this->total_weight . "g ----");
+
     }
 
     private function pushlog($var) {
