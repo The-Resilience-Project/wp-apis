@@ -50,8 +50,12 @@ class ShipStationOrder {
 
     public function __construct($request_invoice_id) {
         $this->pushlog("-----------------Create Shipment For Invoice:".$request_invoice_id."-----------------");
+        $this->pushlog("Request invoice ID type: " . gettype($request_invoice_id));
+        $this->pushlog("Request invoice ID empty check: " . (empty($request_invoice_id) ? "EMPTY" : "NOT EMPTY"));
+
         $this->vtod = init_vtod();
         if(is_string($this->vtod)){
+            $this->pushlog("ERROR: vtod is a string, not an object: " . $this->vtod);
             return;
         }
         $this->invoice_id = $request_invoice_id;
@@ -69,30 +73,41 @@ class ShipStationOrder {
     }
 
     public function create(){
+        $this->pushlog("=== Starting create() method ===");
+
         if(is_string($this->vtod)){
-            $this->pushlog("Failed to create SS order - unable to init vtod". $this->vtod);
+            $this->pushlog("ERROR: Failed to create SS order - unable to init vtod: " . $this->vtod);
             $this->pushlog("---------------------------------------------------------------------");
             http_response_code(500);
-            echo json_encode(array('success'=>'false', 'msg'=>'Failed to init'));
+            echo json_encode(array('success'=>'false', 'msg'=>'Failed to init vtod: ' . $this->vtod));
             exit;
         }
 
-        if(!$this->invoice_id) {
-            $this->pushlog("Failed to create SS order - no invoice ID");
+        if(!$this->invoice_id || $this->invoice_id == '16x') {
+            $this->pushlog("ERROR: Failed to create SS order - no invoice ID or invalid ID");
+            $this->pushlog("Invoice ID value: '" . $this->invoice_id . "'");
             $this->pushlog("---------------------------------------------------------------------");
-            // $this->vtod->comment("Failed to create order in SS - no invoice ID provided", $this->invoice_id, "19x1");
             http_response_code(500);
-            echo json_encode(array('success'=>'false', 'msg'=>'No Invoice ID'));
+            echo json_encode(array('success'=>'false', 'msg'=>'No Invoice ID or invalid ID: ' . $this->invoice_id));
             exit;
         }
 
+        $this->pushlog("Attempting to retrieve invoice: " . $this->invoice_id);
         $this->invoice_data = $this->vtod->retrieve($this->invoice_id);
+        $this->pushlog("Invoice data retrieved, checking if valid...");
+        $this->pushlog("Invoice data type: " . gettype($this->invoice_data));
+        if(is_array($this->invoice_data)) {
+            $this->pushlog("Invoice data has " . count($this->invoice_data) . " fields");
+            $this->pushlog("Invoice data 'id' field: " . (isset($this->invoice_data['id']) ? $this->invoice_data['id'] : "NOT SET"));
+        }
 
         if(!$this->invoice_data['id']) {
             $this->pushlog("Failed to create SS order - failed to find invoice in VT");
+            $this->pushlog("Invoice ID searched: " . $this->invoice_id);
+            $this->pushlog("Invoice data returned: " . json_encode($this->invoice_data));
             $this->pushlog("---------------------------------------------------------------------");
             http_response_code(500);
-            echo json_encode(array('success'=>'false', 'msg'=>"Failed to find invoice in VT"));
+            echo json_encode(array('success'=>'false', 'msg'=>"Failed to find invoice in VT with ID: " . $this->invoice_id));
             exit;
         }
 
@@ -384,5 +399,20 @@ class ShipStationOrder {
         }
     }
 }
-$ship_station_order = new ShipStationOrder($_REQUEST['recordid']);
+
+// Log all incoming request parameters
+log_debug('Create shipment 2025: Incoming REQUEST parameters', ['data' => $_REQUEST]);
+log_debug('Create shipment 2025: Incoming GET parameters', ['data' => $_GET]);
+log_debug('Create shipment 2025: Incoming POST parameters', ['data' => $_POST]);
+log_debug('Create shipment 2025: Request method', ['method' => $_SERVER['REQUEST_METHOD']]);
+
+// Get the invoice ID from request
+$invoice_id = isset($_REQUEST['recordid']) ? $_REQUEST['recordid'] : null;
+if(empty($invoice_id) && isset($_REQUEST['id'])) {
+    $invoice_id = $_REQUEST['id'];
+}
+
+log_debug('Create shipment 2025: Using invoice ID', ['invoice_id' => $invoice_id]);
+
+$ship_station_order = new ShipStationOrder($invoice_id);
 $ship_station_order->create();
