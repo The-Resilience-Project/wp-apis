@@ -377,10 +377,6 @@ class ShipStationOrder {
     }
 
     private function pushlog($var) {
-        global $debug;
-        if(!$debug)
-            return;
-
         if(is_array($var) || is_object($var)) {
             log_debug('Create shipment 2025', ['data' => $var]);
         } else {
