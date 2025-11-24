@@ -1,0 +1,478 @@
+/* 
+Theme Name: Hello Elementor Child
+Theme URI: https://github.com/elementor/hello-theme/
+Description: Hello Elementor Child is a child theme of Hello Elementor, created by Elementor team
+Author: Elementor Team
+Author URI: https://elementor.com/
+Template: hello-elementor
+Version: 1.0.1
+Text Domain: hello-elementor-child
+License: GNU General Public License v3 or later.
+License URI: https://www.gnu.org/licenses/gpl-3.0.html
+Tags: flexible-header, custom-colors, custom-menu, custom-logo, editor-style, featured-images, rtl-language-support, threaded-comments, translation-ready
+*/
+
+/*
+    Add your custom styles here
+*/
+.site-main.post-539 {max-width: 100% !important;}
+.elementor-552 .elementor-element.elementor-element-5c05e3c > .elementor-container{max-width:1365px;}.elementor-552 .elementor-element.elementor-element-5c05e3c{padding:10px 10px 10px 10px;}.elementor-552 .elementor-element.elementor-element-6eca535 > .elementor-element-populated{padding:0px 30px 0px 0px;}.elementor-552 .elementor-element.elementor-element-b16b05d > .elementor-container{max-width:1240px;}.elementor-552 .elementor-element.elementor-element-b16b05d:not(.elementor-motion-effects-element-type-background), .elementor-552 .elementor-element.elementor-element-b16b05d > .elementor-motion-effects-container > .elementor-motion-effects-layer{background-color:#00B0CA;}.elementor-552 .elementor-element.elementor-element-b16b05d{transition:background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;padding:10px 20px 10px 20px;}.elementor-552 .elementor-element.elementor-element-b16b05d > .elementor-background-overlay{transition:background 0.3s, border-radius 0.3s, opacity 0.3s;}.elementor-552 .elementor-element.elementor-element-bab560d .elementor-heading-title{color:#FFFFFF;font-family:"Public Sans", Sans-serif;font-size:45px;font-weight:900;text-transform:uppercase;line-height:53px;text-shadow:3px 3px 0px rgba(0,0,0,0.3);}@media(max-width:1024px){.elementor-552 .elementor-element.elementor-element-1e3ed05 img{width:220px;}}@media(min-width:768px){.elementor-552 .elementor-element.elementor-element-6eca535{width:16.849%;}.elementor-552 .elementor-element.elementor-element-b892399{width:82.816%;}}@media(max-width:1024px) and (min-width:768px){.elementor-552 .elementor-element.elementor-element-6eca535{width:30%;}.elementor-552 .elementor-element.elementor-element-b892399{width:70%;}}@media(max-width:767px){.elementor-552 .elementor-element.elementor-element-6eca535 > .elementor-element-populated{padding:10px 10px 10px 10px;}.elementor-552 .elementor-element.elementor-element-1e3ed05{text-align:left;}.elementor-552 .elementor-element.elementor-element-1e3ed05 img{width:220px;}}
+.elementor-552 .elementor-element.elementor-element-0564199 {
+    transition: background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;
+    padding: 0px 40px 0px 40px;
+}
+.gform_wrapper.gravity-theme .gfield_label {
+    margin-top: 18px;
+}
+.elementor-552 .elementor-element.elementor-element-ff64251 > .elementor-element-populated {
+    transition: background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;
+    padding: 0px 40px 20px 40px;
+}
+.elementor-552 .elementor-element.elementor-element-ff64251:not(.elementor-motion-effects-element-type-background) > .elementor-widget-wrap, .elementor-552 .elementor-element.elementor-element-ff64251 > .elementor-widget-wrap > .elementor-motion-effects-container > .elementor-motion-effects-layer {
+    background-color: #FFFFFF;
+}
+.elementor-552 .elementor-element.elementor-element-0564199:not(.elementor-motion-effects-element-type-background), .elementor-552 .elementor-element.elementor-element-0564199 > .elementor-motion-effects-container > .elementor-motion-effects-layer {
+    background-color: #F8F8F8;
+}
+.elementor-552 .elementor-element.elementor-element-bab560d .elementor-heading-title {
+    color: #FFFFFF;
+    font-family: "Public Sans", Sans-serif;
+    font-size: 45px;
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 53px;
+    text-shadow: 3px 3px 0px rgb(0 0 0 / 30%);
+}
+@media all and (max-width: 480px) { 
+.trp-form-table-1 {
+    width: 100%;
+	display:block;
+}
+}
+.gform_wrapper.gravity-theme .gfield_label {
+    margin-top: 18px;
+}
+div#gfield_description_13_142,div#gfield_description_13_153 {
+    margin-top: 20px;
+	margin-bottom: -8px;
+}
+table.gpecf-order-summary > tr > td:last-of-type {
+content:"*";
+}
+.page-id-224 td div {
+    color: #000!important;
+	font-weight:normal;
+}
+.gfield_description {
+    font-weight: bold;
+    font-size: 16px!important;
+}
+label.gfield_label.gfield_label_before_complex {
+    display: none!important;
+}
+.ginput_quantity_label {
+    display: inline-block!important;
+}
+.ginput_product_price_wrapper {
+    display: block!important;
+	margin-bottom: 10px;
+}
+.gform_wrapper.gravity-theme .ginput_product_price {
+    color: #333;
+    font-size: 16px;
+}
+.ginput_product_price::after {
+    content:"+GST";
+}
+.gform_wrapper.gravity-theme .ginput_quantity_label {
+    font-size: 16px;
+}
+button {
+    color: #444;
+    border: 1px solid #00b0ca;
+    padding: 5px 10px;
+}
+button:hover {
+    color: #444;
+    background-color: #fff;
+}
+button:focus {
+    color: #444;
+    background-color: #fff;
+	outline: 1px solid #00b0ca;
+}
+.gform_wrapper.gravity-theme .ginput_product_price_label {
+	font-size:16px;
+}
+span.gfield_required.gfield_required_text {
+    display: none;
+}
+td.trp-forms-tick-1,td.trp-forms-cost-1 {
+    text-align: center;
+    vertical-align: middle;
+}
+td.trp-forms-table-heading-1 {
+    color: #00b0ca;
+}
+div#field_5_55 label {
+    position: relative;
+    margin-bottom: -135px!important;
+    font-weight: 400;
+	color:#333;
+}
+.student-fee-disclaimer {
+    padding-top: 10px;
+    font-size: 14px;
+}
+.table-student-fee-disclaimer {
+    padding-top: 10px;
+    font-size: 14px;
+	margin-top:-15px
+}
+.summary-page-program-box {
+    font-size: 14px!important;
+    background-color: #f8f8f8!important;
+    padding: 20px 20px 0px 20px!important;
+    margin-top: 0px!important;
+    border: 1px solid #f2f2f2!important;
+}
+.gform_wrapper.gravity-theme .gfield_checkbox label {
+	font-size:16px;
+}
+div#field_4_112 {
+    margin-top: 0px!important;
+}
+.page-id-17552 td strong {
+    font-size: 18px!important;
+}
+.page-id-17552 td font {
+    font-size: 16px!important;
+}
+.page-id-17552 ul.bulleted {
+    padding-top: 4px;
+}
+.gchoice.gchoice_3_102_1.image-choices-choice, .gchoice.gchoice_3_99_1.image-choices-choice, .gchoice.gchoice_3_89_1.image-choices-choice {
+    width: 54%;
+}
+div#field_3_49 table td {
+    padding: 0px 5px;
+	border: none;
+	background-color:#fff;
+}
+div#field_3_49 table font {
+    font-size: 16px;
+}
+div#field_3_49 tr td {
+    font-size: 20px!important;
+	padding: 0px 7px;
+}
+div#field_3_49 table tbody>tr:nth-child(odd)>td {
+    background-color: #fff;
+}
+.support-sub-heading-1 {
+    font-size: 18px;
+    margin-top: 40px;
+    font-weight: bold;
+}
+.additional-text-1 {
+    font-size: 16px;
+    background-color: #f8f8f8;
+    padding: 20px;
+    margin-top: 10px;
+    border: 1px solid #f2f2f2;
+}
+.additional-text-2 {
+    font-size: 16px;
+}
+.warning-text {
+    font-size: 16px;
+    background-color: #f8f8f8;
+    padding: 20px;
+    margin-top: 10px;
+    border: 1px solid #f2f2f2;
+		color: #DC0451;
+}
+.sub-heading-forms-1 {
+    color: #00b0ca;
+    font-weight: normal;
+	font-size:17px;
+}
+.learn-more-1 {
+    font-size: 16px;
+	padding:20px;
+}
+.gform_wrapper.gravity-theme .gform_page_footer input {
+    margin-bottom: 8px;
+    background-color: #00b0ca;
+    border: navajowhite;
+    color: #fff;
+    margin-top: 30px;
+    font-size: 18px;
+}
+hr.form-line-1 {
+    width: 40px;
+    background-color: #00b0ca;
+    border: 2px solid #00b0ca;
+    margin-bottom: -10px;
+	margin-top: 60px;
+}
+legend.gfield_label {
+    display: none!important;
+}
+h3.gsection_title {
+    font-weight: 900;
+    text-transform: uppercase;
+}
+body .gform_wrapper input[type="text"] {
+    background-color: #f5f5f5;
+	    border: 1px solid #ddd;
+}
+.gform_wrapper.gravity-theme .gfield input.large, .gform_wrapper.gravity-theme .gfield select.large {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+}
+div#field_4_55,div#field_5_170 {
+    padding-top: 20px;
+}
+em {
+    font-size: 14px;
+}
+h5.sub-heading-3 {
+    color: #00b0ca;
+    margin-bottom: 0px;
+	text-transform: uppercase;
+	font-weight:bold;
+}
+h5.sub-heading-4 {
+    color: #00b0ca;
+    margin-bottom: 15px;
+	margin-top: 20px;
+	text-transform: normal;
+	font-weight:bold;
+}
+h5.sub-heading-4 a {
+    color: #00b0ca;
+}
+div#field_9_55 {
+    margin-top: 20px;
+}
+div#gfield_description_9_55 {
+    padding-top: 3px;
+}
+div#field_7_55 {
+    margin-top: 15px;
+}
+div#gfield_description_7_55 {
+    padding-top: 3px;
+}
+hr.form-line-2 {
+    width: 40px;
+    background-color: #00b0ca;
+    border: 2px solid #00b0ca;
+    margin-bottom: 0px;
+	margin-top: 20px;
+}
+div#field_10_9 .gfield_label {
+    display: none;
+}
+div#gfield_description_10_9 {
+    margin-top: -8px;
+}
+.dialog-ovelay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.50);
+	z-index: 999999
+}
+.dialog-ovelay .dialog {
+	width: 800px;
+	margin: 100px auto 0;
+	background-color: #fff;
+	box-shadow: 0 0 20px rgba(0,0,0,.2);
+	border-radius: 3px;
+	overflow: hidden
+}
+.dialog-ovelay .dialog header {
+	padding: 10px 8px;
+	background-color: #f6f7f9;
+	border-bottom: 1px solid #e5e5e5
+}
+.dialog-ovelay .dialog header h3 {
+	font-size: 14px;
+	margin: 0;
+	color: #555;
+	display: inline-block
+}
+.dialog-ovelay .dialog header .fa-close {
+	float: right;
+	color: #c4c5c7;
+	cursor: pointer;
+	transition: all .5s ease;
+	padding: 0 2px;
+	border-radius: 1px
+}
+.dialog-ovelay .dialog header .fa-close:hover {
+	color: #b9b9b9
+}
+.dialog-ovelay .dialog header .fa-close:active {
+	box-shadow: 0 0 5px #673AB7;
+	color: #a2a2a2
+}
+.dialog-ovelay .dialog .dialog-msg {
+	padding: 12px 10px
+}
+.dialog-ovelay .dialog .dialog-msg p{
+	margin: 0;
+	font-size: 15px;
+	color: #333
+}
+.dialog-ovelay .dialog footer {
+	border-top: 1px solid #e5e5e5;
+	padding: 8px 10px
+}
+.dialog-ovelay .dialog footer .controls {
+	direction: rtl
+}
+.dialog-ovelay .dialog footer .controls .button {
+	padding: 5px 15px;
+	border-radius: 3px
+}
+.button {
+	cursor: pointer
+}
+.button-default {
+	background-color: rgb(248, 248, 248);
+	border: 1px solid rgba(204, 204, 204, 0.5);
+	color: #5D5D5D;
+}
+.button-danger {
+	background-color: #f44336;
+	border: 1px solid #d32f2f;
+	color: #f5f5f5
+}
+/*
+    Start Existing School Confirmation Form
+*/
+.site-main.post-638{
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .site-main.post-638 br{
+        display:none;
+    }
+
+    .elementor-kit-158{--e-global-color-primary:#6EC1E4;--e-global-color-secondary:#54595F;--e-global-color-text:#7A7A7A;--e-global-color-accent:#61CE70;--e-global-typography-primary-font-family:"Roboto";--e-global-typography-primary-font-weight:600;--e-global-typography-secondary-font-family:"Roboto Slab";--e-global-typography-secondary-font-weight:400;--e-global-typography-text-font-family:"Roboto";--e-global-typography-text-font-weight:400;--e-global-typography-accent-font-family:"Roboto";--e-global-typography-accent-font-weight:500;}.elementor-section.elementor-section-boxed > .elementor-container{max-width:1140px;}.elementor-widget:not(:last-child){margin-bottom:20px;}{}h1.entry-title{display:var(--page-title-display);}@media(max-width:1024px){.elementor-section.elementor-section-boxed > .elementor-container{max-width:1024px;}}@media(max-width:767px){.elementor-section.elementor-section-boxed > .elementor-container{max-width:767px;}}
+    .elementor-127 .elementor-element.elementor-element-8cd1fbc > .elementor-container{max-width:1365px;}.elementor-127 .elementor-element.elementor-element-8cd1fbc{padding:10px 10px 10px 10px;}.elementor-127 .elementor-element.elementor-element-45a0dbf > .elementor-element-populated{padding:0px 30px 0px 0px;}.elementor-127 .elementor-element.elementor-element-ccdc64e > .elementor-container{max-width:1240px;}.elementor-127 .elementor-element.elementor-element-ccdc64e:not(.elementor-motion-effects-element-type-background), .elementor-127 .elementor-element.elementor-element-ccdc64e > .elementor-motion-effects-container > .elementor-motion-effects-layer{background-color:#00B0CA;}.elementor-127 .elementor-element.elementor-element-ccdc64e{transition:background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;padding:10px 20px 10px 20px;}.elementor-127 .elementor-element.elementor-element-ccdc64e > .elementor-background-overlay{transition:background 0.3s, border-radius 0.3s, opacity 0.3s;}.elementor-127 .elementor-element.elementor-element-b1656f1 .elementor-heading-title{color:#FFFFFF;font-family:"Public Sans", Sans-serif;font-size:45px;font-weight:900;text-transform:uppercase;line-height:53px;text-shadow:3px 3px 0px rgba(0,0,0,0.3);}.elementor-127 .elementor-element.elementor-element-c068fa6:not(.elementor-motion-effects-element-type-background), .elementor-127 .elementor-element.elementor-element-c068fa6 > .elementor-motion-effects-container > .elementor-motion-effects-layer{background-color:#F8F8F8;}.elementor-127 .elementor-element.elementor-element-c068fa6{transition:background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;padding:0px 40px 0px 40px;}.elementor-127 .elementor-element.elementor-element-c068fa6 > .elementor-background-overlay{transition:background 0.3s, border-radius 0.3s, opacity 0.3s;}.elementor-127 .elementor-element.elementor-element-3b24557:not(.elementor-motion-effects-element-type-background) > .elementor-widget-wrap, .elementor-127 .elementor-element.elementor-element-3b24557 > .elementor-widget-wrap > .elementor-motion-effects-container > .elementor-motion-effects-layer{background-color:#FFFFFF;}.elementor-127 .elementor-element.elementor-element-3b24557 > .elementor-element-populated{transition:background 0.3s, border 0.3s, border-radius 0.3s, box-shadow 0.3s;padding:0px 40px 20px 40px;}.elementor-127 .elementor-element.elementor-element-3b24557 > .elementor-element-populated > .elementor-background-overlay{transition:background 0.3s, border-radius 0.3s, opacity 0.3s;}@media(max-width:767px){.elementor-127 .elementor-element.elementor-element-c068fa6{padding:0px 0px 0px 0px;}.elementor-127 .elementor-element.elementor-element-3b24557 > .elementor-element-populated{padding:0px 30px 30px 30px;}}@media(min-width:768px){.elementor-127 .elementor-element.elementor-element-45a0dbf{width:16.849%;}.elementor-127 .elementor-element.elementor-element-7823758{width:82.816%;}}
+/*
+    End Existing School Confirmation Form
+*/
+
+
+#gform_21 .gchoice_21_25_2 .image-choices-choice-text {
+    bottom: unset;
+	margin-top: 20px;
+}
+.gf_tooltip {
+    align-items: center;
+    background: #ecedf8;
+    border: none;
+    border-radius: 50%;
+    box-sizing: border-box;
+    color: #242748;
+    display: inline-flex;
+    font-size: .5rem;
+    height: 1rem;
+    justify-content: center;
+    margin-left: 0.25rem;
+    position: relative;
+    text-decoration: none;
+    vertical-align: middle;
+    width: 1rem;
+}
+.gform-icon {
+    font-family: gform-icons-admin!important;
+    speak: never;
+    font-style: normal;
+    font-weight: 400;
+    font-feature-settings: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.gform-icon--question-mark:before {
+    content: "\e97e";
+}
+.tooltip-box {
+  position: relative;
+  display: inline-block;
+	
+	background: #ecedf8;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    padding-top: 2px;
+	
+}
+.tooltip-box .tooltip-text {
+      visibility: hidden;
+    width: auto;
+    min-width: 400px;
+    background-color: black;
+    color: #fff;
+    padding: 6px;
+    position: absolute;
+    z-index: 1;
+    text-align: left;
+	height: fit-content;
+}
+.tooltip-box:hover .tooltip-text {
+  visibility: visible;
+}
+
+.lightgreybg select{
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+}
+div#field_29_222,div#field_18_208,div#field_21_240,div#field_27_240 {
+	margin-bottom: 12px;
+}
+
+div#field_29_222 > label.gfield_label,div#field_18_208 > label.gfield_label,div#field_21_240 > label.gfield_label,div#field_27_240 > label.gfield_label {
+    position: absolute;
+    margin-top: 45px;
+    font-weight: unset;
+}
+select#input_29_222,select#input_18_208,select#input_21_240,select#input_27_240 {
+	background-color: #f5f5f5;
+    border: 1px solid #ddd;
+	width: 48.4%;
+}
+.cbprice {
+	padding-left: 18px !important;
+}
+#field_37_395, #field_37_396, #field_37_351, #field_37_397, #field_37_398,
+#field_34_354, #field_34_355, #field_34_351, #field_34_356, #field_34_357 {
+	margin-bottom: 13px;
+}
+#field_37_395 label.gfield_label, #field_37_396 label.gfield_label, #field_37_351 label.gfield_label, #field_37_397 label.gfield_label, #field_37_398 label.gfield_label, #field_37_403 label.gfield_label,
+#field_34_351 label.gfield_label, #field_34_355 label.gfield_label, #field_34_354 label.gfield_label, #field_34_356 label.gfield_label, #field_34_357 label.gfield_label, #field_34_362 label.gfield_label {
+    position: absolute;
+    margin-top: 45px;
+    font-weight: unset;
+}
+#field_34_242, #field_37_242 {
+    margin-top: 25px;
+}
+#field_37_249 div.ginput_container, #field_34_249 div.ginput_container {
+	font-size: 22px;
+}
+div.gform_body .fieldsetextend {
+	margin-top: -12px;
+}
