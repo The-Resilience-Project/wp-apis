@@ -9,7 +9,6 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: PUT, GET, POST");
 header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
 
-global $dbh;
 $vtod = init_vtod();
 $vtconfig_url = $vtod_config["url"];
 
@@ -423,7 +422,7 @@ else { //no quote
         //             $res_service = $vtod->query($query_service);
         
         $sql  = "SELECT * FROM `boru_products` WHERE `product_no` = ? LIMIT 1";
-        $dataCheck = $dbh->getSingle($sql, array($serviceNo));
+        $dataCheck = get_db()->getSingle($sql, array($serviceNo));
         $dataRecord= array();
         if (!empty($dataCheck['productid'])){
             $dataRecord = (array) json_decode($dataCheck['data']);

@@ -19,7 +19,6 @@ if($_SERVER['REQUEST_METHOD'] != "POST") {
 $strKey = "384c7039e4914a31935861a6e52b4974:fed4f771714b48919e7cdfa2d94411db"; // Shipstation API Key:API Secret
 $authKey = base64_encode($strKey);
 
-global $dbh;
 $vtod = init_vtod();
 $invoiceId = $_REQUEST['id'];
 $st = new shipstation($authKey);
@@ -135,7 +134,7 @@ if($invoiceId) {
         pushlog($orderData);
         if(isset($orderData['orderId'])) {
             $sql = "INSERT INTO `boru_shipment_invoice` (`invoice_id`,`order_id`,`shipment_id`,`order_data`,`shipment_data`,`created_time`) VALUES (?,?,?,?,?,NOW())";
-            $dbh->run($sql, array($invoiceData['id'], $orderData['orderId'], '', json_encode($orderData), ''));
+            get_db()->run($sql, array($invoiceData['id'], $orderData['orderId'], '', json_encode($orderData), ''));
             /*
             $dataLabel['orderId'] = $orderData['orderId'];
             $dataLabel["carrierCode"] = "australia_post";
@@ -149,7 +148,7 @@ if($invoiceId) {
             $shipmentData = $st->post("/orders/createlabelfororder", $dataLabel);
             if(isset($shipmentData['shipmentId'])) $shipmentId = $shipmentData['shipmentId'];
             $sql = "INSERT INTO `boru_shipment_invoice` (`invoice_id`,`order_id`,`shipment_id`,`order_data`,`shipment_data`,`created_time`) VALUES (?,?,?,?,?,NOW())";
-            $dbh->run($sql, array($invoiceData['id'], $orderData['orderId'], $shipmentId, json_encode($orderData), json_encode($shipmentData)));
+            get_db()->run($sql, array($invoiceData['id'], $orderData['orderId'], $shipmentId, json_encode($orderData), json_encode($shipmentData)));
             */
         }
 

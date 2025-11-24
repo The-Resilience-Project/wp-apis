@@ -4,11 +4,23 @@ chdir(dirname(__FILE__));
 require_once "config.php";
 require_once "lib/class_dhpdo.php";
 
-try{
-    $dbh = new dhpdo($local_config);
-}catch (Exception $e){
-    log_exception($e, ['component' => 'database_init']);
-    return 'Error Message: ' .$e->getMessage();
+// Database connection is lazy-loaded - only create if needed
+$dbh = null;
+
+function get_db() {
+    global $dbh, $local_config;
+
+    if ($dbh === null) {
+        try {
+            $dbh = new dhpdo($local_config);
+            log_info("Database connection established");
+        } catch (Exception $e) {
+            log_exception($e, ['component' => 'database_init']);
+            throw $e;
+        }
+    }
+
+    return $dbh;
 }
 
 require_once "lib/class_dhrest.php";

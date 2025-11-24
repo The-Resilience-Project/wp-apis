@@ -261,30 +261,74 @@ class SchoolVTController extends VTController {
     
     
     public function get_info_for_ltrp_form($org_id){
+        log_debug("get_info_for_ltrp_form() called", ['org_id' => $org_id]);
+
         $request_body = array(
             "organisationAccountNo"=> $org_id,
         );
-        
+
+        log_debug("Fetching organization from Vtiger", ['org_id' => $org_id]);
         $org_response = $this->post_request_to_vt("getOrgWithAccountNo", $request_body, true);
+
+        log_debug("Organization response received", [
+            'has_response' => !empty($org_response),
+            'has_result' => !empty($org_response->result ?? null),
+            'result_count' => count($org_response->result ?? [])
+        ]);
 
         $org_found = !empty($org_response) && !empty($org_response->result) && !empty($org_response->result[0]);
 
-
         if(!$org_found){
+            log_warning("Organization not found in Vtiger", [
+                'org_id' => $org_id,
+                'response' => $org_response
+            ]);
             return array("error" => true);
         }
-        
+
         $org_details = $org_response->result[0];
-        
+
+        log_info("Organization found", [
+            'org_id' => $org_id,
+            'vtiger_id' => $org_details->id,
+            'account_name' => $org_details->accountname
+        ]);
+
         $seip_request_body = array(
             "organisationId"=> $org_details->id,
             "seipName"=> $this->seip_name,
         );
-        
+
+        log_debug("Creating or updating SEIP record", [
+            'org_vtiger_id' => $org_details->id,
+            'seip_name' => $this->seip_name
+        ]);
+
         $seip_response = $this->post_request_to_vt("createOrUpdateSEIP", $seip_request_body);
+
+        log_debug("SEIP response received", [
+            'has_response' => !empty($seip_response),
+            'has_result' => !empty($seip_response->result ?? null),
+            'result_count' => count($seip_response->result ?? [])
+        ]);
+
+        if (empty($seip_response) || empty($seip_response->result) || empty($seip_response->result[0])) {
+            log_error("Failed to create or retrieve SEIP record", [
+                'org_id' => $org_id,
+                'seip_response' => $seip_response
+            ]);
+            return array("error" => true);
+        }
+
         $seip_details = $seip_response->result[0];
-        
-        
+
+        log_info("SEIP details retrieved successfully", [
+            'seip_id' => $seip_details->id ?? 'unknown',
+            'ltrp_watched' => $seip_details->fld_leadingtrpwatched ?? 'empty',
+            'ca_completed' => $seip_details->fld_cacompleted ?? 'empty',
+            'participants' => $seip_details->cf_vtcmseip_numberofparticipants ?? 'empty'
+        ]);
+
         return array(
             "ltrp" => $seip_details->fld_leadingtrpwatched,
             "ca" => $seip_details->fld_cacompleted,
@@ -293,10 +337,6 @@ class SchoolVTController extends VTController {
             "participants" => $seip_details->cf_vtcmseip_numberofparticipants,
             "error" => false,
         );
-
-
-        
-
     }
 
     protected function get_line_items(){

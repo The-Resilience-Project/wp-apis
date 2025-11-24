@@ -1,7 +1,10 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: theresilienceproject
 service: trp-api
 
 provider:
     name: aws
+    profile: trp-integrations
     region: ap-southeast-2
     runtime: provided.al2
     timeout: 29  # HTTP API Gateway has a hard limit of 30 seconds
