@@ -138,35 +138,51 @@ class ShipStationOrder {
             echo json_encode(array("success" => 'true', 'orderData'=>'', "msg" => "No need to create order in Ship Station"));
             exit;
         }
-        
-        // check if order already in SS 
-        if($this->is_order_in_SS()){
-            $this->pushlog("Order already in SS");
-            $this->pushlog("-------------------------------------------------------------------");
-            echo json_encode(array('success'=>'true','orderData'=>'', 'msg' => "Order already in Ship Station"));
-            exit;
-        }
-        
+
+        // Calculate weight BEFORE checking if order exists, so we can see what the weight would be
         try{
             $this->format_items();
             $this->pushlog("-- Formatted Items");
-            
+
             $this->set_account_data();
             $this->pushlog("-- Set Account Data");
             
             $this->format_ship_to();
             $this->pushlog("-- Formatted Ship To");
-            
+
             $this->format_bill_to();
             $this->pushlog("-- Formatted Bill To");
-            
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+            $this->pushlog('Error formatting data: '. $error . "\n");
+            http_response_code(500);
+            echo json_encode(array('success'=>'false','msg' => $error));
+            exit;
+        }
+
+        // check if order already in SS (after calculating weight so we can see it in logs)
+        if($this->is_order_in_SS()){
+            $this->pushlog("Order already in SS - but here's what the weight would have been:");
+            $this->pushlog("Calculated total weight: " . $this->total_weight . "g");
+            $this->pushlog("Number of items: " . count($this->items));
+            $this->pushlog("-------------------------------------------------------------------");
+            echo json_encode(array(
+                'success'=>'true',
+                'orderData'=>'',
+                'msg' => "Order already in Ship Station",
+                'calculated_weight_grams' => $this->total_weight,
+                'item_count' => count($this->items)
+            ));
+            exit;
+        }
+
+        try{
             $this->format_ss_payload();
             $this->pushlog("SS Payload");
             $this->pushlog($this->ss_payload);
         } catch (Exception $e) {
             $error = $e->getMessage();
             $this->pushlog('Error formatting SS payload: '. $error . "\n");
-            // $this->vtod->comment("Failed to create order in SS.", $this->invoice_id, $this->invoice_data["assigned_user_id"]);
             http_response_code(500);
             echo json_encode(array('success'=>'false','msg' => $error));
             exit;
