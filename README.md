@@ -84,7 +84,8 @@ cp src/config.php.example src/config.php
 ### Deploy Entire Stack
 
 ```bash
-serverless deploy --aws-profile trp-integrations
+export AWS_PROFILE=trp-integrations
+serverless deploy
 ```
 
 ### Deploy Single Function
