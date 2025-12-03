@@ -236,7 +236,7 @@ class SchoolVTController extends VTController {
         $free_shipping = false;
         if(!empty($invoice_response) and !empty($invoice_response->result)){
             $invoices = $invoice_response->result;
-            $target_datetime = $for_2026 ? "2025-11-28 12:59" : "2024-11-08 12:59"; 
+            $target_datetime = $for_2026 ? "2025-11-29 00:00" : "2024-11-08 12:59"; 
             if(count($invoices) == 1 and strtotime($invoices[0]->createdtime) < strtotime($target_datetime) ){
                 $free_shipping = true;
             }
